@@ -8,13 +8,14 @@
 **finance-daily-v5（金融日报 V5）**：一个 [Agent Skills 开放规范](https://agentskills.io/specification) 格式的技能包。用户对 agent 说「金融日报」等触发词，agent 采集公开市场数据，生成报刊风（暖纸底+金线+红涨绿跌）的金融市场要闻日报，双交付 HTML + 3x PNG 长图。
 
 - 来源：从 WorkBuddy 平台的「金融日报V5」skill 移植（2026-11-12 导出），正文逻辑未改，仅标准化。
-- 仓库：`C:\AIdocument\GitHub-cc-ds\skill-2\test\finance-daily-v5`（git 已初始化，分支 `main`，**无远端**）。
-- 用户目标：准备上传到 GitHub 公开，但**明确要求暂不推送**（"你先别推，等我把本地活干完再说"）。所以：不要自行 `git remote add` 或 push。
+- 本地：`C:\AIdocument\GitHub-cc-ds\skill-2\test\finance-daily-v5`（分支 `main`）。
+- 远端：`https://github.com/EDboy-616/finance-daily-v5`（public，`origin` 已配置）。用户已授权推送（"推吧 直接用我的浏览器"），**后续改动默认本地提交 + 推送**；若用户说"先别推"则以他为准。
 
-## 2. 当前状态（2026-11-12 第二轮改造后）
+## 2. 当前状态（2026-11-12 第三轮：README 重做）
 
-- git 历史：`aefe8d2` 标准化重构 → `fa39855` 跨宿主适配层 → `55a9f8c` HANDOFF（本轮改动尚未提交）。
-- 本轮新增：`scripts/validate_skill.py`、`scripts/install.py`、`scripts/package_claudeai.py`、`maintainer/prompt-slim.src.md`、`adapters/system-prompt-slim.md`、`.claude-plugin/marketplace.json`、`.github/workflows/verify.yml`、`.gitattributes`。
+- git 历史：`aefe8d2` 标准化重构 → `fa39855` 跨宿主适配层 → `55a9f8c` HANDOFF → `6ed3a21` 长度回填 → `b529efc` CI 两坑 → `e175000` 文档 → `46ca522` 作者归属修正（远端 `main` 同点，CI 双平台绿）。
+- 本轮新增：`docs/`（`emblem.svg`、`banner.png`、`social-preview.png`、`preview-top/detail/full.png`）+ `maintainer/make_docs_images.py`（生成 README 用图的维护脚本，不随 skill 安装）+ README 全面重写。
+- 更早一轮新增：`scripts/validate_skill.py`、`scripts/install.py`、`scripts/package_claudeai.py`、`maintainer/prompt-slim.src.md`、`maintainer/repo.txt`、`adapters/system-prompt-slim.md`、`.claude-plugin/marketplace.json`、`.github/workflows/verify.yml`、`.gitattributes`。
 - `test/_extracted/`（仓库外，位于 `skill-2/test/`）是原始 zip 的解压残留，仅作对照，**不要**纳入仓库。
 - 调研笔记（仓库外，别删）：`C:\AIdocument\GitHub-cc-ds\skill-2\test\_notes\agent-skills-conventions.md` —— 规范原文约束、46 个原生支持宿主的目录约定、各家上下文文件字符上限、可抄的 marketplace.json 实例，都在那里，别再重复调研。
 
@@ -80,7 +81,17 @@ python scripts/fetch_public.py --date YYYY-MM-DD --out-dir ./raw
 
 # 渲染 PNG（需 playwright + pillow，本机已装 chromium）
 python scripts/render.py <input.html> <output.png> [scale=3]
+
+# 重新生成 README 用图（徽标 / 横幅 / 三张预览图；需 playwright + pillow）
+python maintainer/make_docs_images.py
 ```
+
+### README 用图的约束（改 README 前必读）
+
+- `docs/` 下 6 个文件全部由 `maintainer/make_docs_images.py` 生成，**不要手改 PNG/SVG**；改版面就改脚本里的 HTML 模板。
+- 预览图的渲染源是 `assets/market_news_template.html` + 样例数据，所以它永远反映真实版面；换模板配色后必须重跑一次，否则 README 里的图和实际产出对不上。
+- 徽标几何（`_stalk()` 的麦粒旋转、`emblem_svg()` 的 viewBox）是反复调到 320/96/44/28px 都清晰才定稿的，**改之前先在四档尺寸下看一遍**。
+- 中间 HTML 一律写 `tempfile.mkdtemp()`，别写进仓库 —— `.gitignore` 有 `*.html` 规则（只放行模板），落地文件会被静默忽略，容易以为生成成功。
 
 ## 6. 已验证事项（截至本交接）
 
@@ -90,6 +101,7 @@ python scripts/render.py <input.html> <output.png> [scale=3]
 - ✅ `render.py` 端到端验证过：拿 `assets/market_news_template.html` 改日期渲染出 3240×8631 的 3x PNG，裁边正常、13 个板块与 ticker 十卡都在。playwright + Pillow 已在本机装好（chromium-1248 在 `%LOCALAPPDATA%\ms-playwright`）；`file:///" +` 拼接的旧 bug 已修为 `Path.resolve().as_uri()`，validator 有回归守卫。
 - ⚠️ **未做真实日报端到端**：模板渲染链路已验证，但 Step 0~7 的完整流程（含检索新闻、填内容）尚未串起来出过一张真图。
 - ✅ **已推送到 https://github.com/EDboy-616/finance-daily-v5（public，默认分支 main）**，CI `verify` 在 ubuntu-latest 与 windows-latest 双平台全绿；`dist/*.zip` 作为 artifact 留档（约 27 KB）。
+- ✅ README 用图已生成并逐张目视确认（`docs/` 6 个文件，`make_docs_images.py` exit 0）；README 已用 GitHub 官方 markdown API 渲染后截图核对，修掉了两处真实版面缺陷（4 列表格横向溢出、CJK 制表符导致目录树注释对不齐）。
 - ⚠️ `install.py` 的宿主路径表来自官方文档 + skills.sh / skillfish / ruler 三家交叉核对，但未逐台实测；OpenCode / TRAE / Kiro / Roo / Goose / CodeBuddy / Antigravity 七家沿用社区约定。
 - ⚠️ `claude plugin validate .` 未跑过（本机 `gh` 未登录、未装 claude CLI）；`.claude-plugin/marketplace.json` 结构按官方实例写，`validate_skill.py` 只做了结构自检。
 - ⚠️ 乱码说明：`skill-2/test/_extracted/` 下两个文件名乱码的 md 是原 zip GBK 文件名导致（内容是「README_安装说明.md」和「打包说明_金融日报V5.md」），内容已无损失，不影响仓库。
