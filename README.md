@@ -18,21 +18,56 @@
 - **双交付**：HTML 网页（可预览）+ 3x 高清 PNG 长图（Playwright 渲染 + 自动裁边）。
 - **纯市场要闻**：不含个人持仓/自选等个性化内容，页面内不出现风格/流程自述。
 
+## 跨宿主兼容
+
+`SKILL.md` 是唯一事实源（Agent Skills 标准格式），`adapters/` 下由 `scripts/build_adapters.py` 自动生成各宿主适配文件——正文逐字一致，仅引导头不同：
+
+| 宿主 | 适配文件 | 安装方式 | 能力档位（见 SKILL.md §9） |
+|------|---------|---------|--------------------------|
+| **Claude Code / claude.ai** | `SKILL.md` | 原样放入 `~/.claude/skills/finance-daily-v5/` 或项目 `.claude/skills/` | 完整版 |
+| **OpenAI Codex CLI** | `adapters/AGENTS.md` | 内容放入项目根 `AGENTS.md`（或 `~/.codex/AGENTS.md`） | 完整版 |
+| **Gemini CLI** | `adapters/GEMINI.md` | 内容放入项目根 `GEMINI.md`（或 `~/.gemini/GEMINI.md`） | 完整版 |
+| **Qwen Code** | `adapters/QWEN.md` | 内容放入项目根 `QWEN.md`（或 `~/.qwen/QWEN.md`） | 完整版 |
+| **Cursor** | `adapters/cursor-rules.mdc` | 复制为 `.cursor/rules/finance-daily-v5.mdc` | 完整版 |
+| **Claude Code（项目引用式）** | `adapters/CLAUDE.md` | 内容追加到项目 `CLAUDE.md`，无需装 skills 目录 | 完整版 |
+| **GPTs / Kimi / DeepSeek / GLM / 豆包 等对话型** | `adapters/system-prompt.md` | 正文整篇贴进系统提示词/自定义指令 | 只读版（用户本地跑脚本后贴 JSON 回来） |
+
+正文按宿主实际能力自动降级，**任何档位都不放宽数据铁律**（取不到的数字撤下或标「待核」，禁止编造）：
+
+| 档位 | 所需能力 | 产出 |
+|------|---------|------|
+| 完整版 | 命令 + 检索 + 打开网页 + Playwright | HTML + PNG 双交付 |
+| 标准版 | 命令 + 检索 | HTML（新闻数字须 ≥2 源一致） |
+| 行情版 | 仅命令 | 纯行情 HTML（新闻板块标注未采集） |
+| 只读版 | 无（纯对话） | 用户本地跑 `fetch_public.py` 贴回 JSON，产出 HTML 文本 |
+
+改动 `SKILL.md` 后运行 `python scripts/build_adapters.py` 重新生成；CI/提交前可用 `python scripts/build_adapters.py --check` 校验是否漂移。
+
 ## 目录结构
 
 ```
 finance-daily-v5/
-├── SKILL.md                        # 技能定义与完整流程（触发后 Claude 按此执行）
+├── SKILL.md                        # 技能定义与完整流程（唯一事实源，Agent Skills 标准格式）
 ├── README.md                       # 本文件
 ├── LICENSE
+├── adapters/                       # 各宿主适配文件（由 build_adapters.py 生成，勿手改）
+│   ├── AGENTS.md                   #   OpenAI Codex CLI 及 AGENTS.md 约定
+│   ├── GEMINI.md                   #   Gemini CLI
+│   ├── QWEN.md                     #   Qwen Code
+│   ├── CLAUDE.md                   #   Claude Code 项目引用版
+│   ├── cursor-rules.mdc            #   Cursor Project Rules
+│   └── system-prompt.md            #   纯对话型宿主（GPTs/Kimi/DeepSeek/GLM/豆包）
 ├── assets/
 │   └── market_news_template.html   # 报刊风渲染模板（含全部 section 结构）
 └── scripts/
     ├── fetch_public.py             # 公开源硬行情抓取（纯标准库，零第三方依赖）
-    └── render.py                   # Playwright 3x 渲染 PNG + 自动裁边
+    ├── render.py                   # Playwright 3x 渲染 PNG + 自动裁边
+    └── build_adapters.py           # 从 SKILL.md 生成 adapters/（--check 校验漂移）
 ```
 
 ## 安装
+
+### Claude Code / claude.ai（Agent Skills 标准）
 
 个人级（所有项目可用）：
 
@@ -48,7 +83,11 @@ git clone https://github.com/<你的用户名>/finance-daily-v5.git ~/.claude/sk
 
 项目级：克隆到 `<repo>/.claude/skills/finance-daily-v5`。
 
-安装渲染依赖（仅 PNG 需要；行情脚本零依赖）：
+### 其他宿主
+
+见上方「跨宿主兼容」表格：Codex/Gemini/Qwen 用对应 `adapters/*.md` 放入项目根；Cursor 用 `.cursor/rules/`；纯对话型宿主（GPTs/Kimi/DeepSeek/GLM/豆包）把 `adapters/system-prompt.md` 正文贴进系统提示词。
+
+### 渲染依赖（仅 PNG 需要；行情脚本零依赖）
 
 ```bash
 pip install playwright pillow
@@ -93,7 +132,7 @@ python scripts/fetch_public.py --date 2026-11-12 --out-dir ./raw
 
 ## 已知限制
 
-- **没有 WebSearch 工具的宿主环境只能出「纯行情版」**：硬行情靠脚本，六块新闻全靠 WebSearch + WebFetch。
+- **没有 WebSearch 工具的宿主环境自动降级为「行情版」**（见跨宿主兼容的档位表）：硬行情靠脚本，新闻靠检索能力，缺什么降什么档，但数据铁律不放宽。
 - 东方财富 push2 与 FRED 在部分网络环境（本地代理 / 强制 HTTP/2）会被拒；脚本已将其降级为可选交叉源，失败即跳过。
 - 美股 `curmktstatus=REG_MKT` 表示盘中价（美东 16:00 前），日报会标注时点。
 - 财政部收益率曲线为 T-1 发布，当日美债数据次日才出。
