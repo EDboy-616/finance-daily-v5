@@ -31,14 +31,21 @@ from __future__ import annotations
 import argparse
 import os
 import re
-import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SKILL_MD = ROOT / "SKILL.md"
 SLIM_SRC = ROOT / "maintainer" / "prompt-slim.src.md"
+REPO_FILE = ROOT / "maintainer" / "repo.txt"
 ADAPTERS_DIR = ROOT / "adapters"
+
+# Windows 控制台默认 GBK/cp1252，中文与 ✓ 直接抛 UnicodeEncodeError（CI 上真炸过）。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
 SKILL_NAME = "finance-daily-v5"
 
@@ -62,22 +69,20 @@ def fill_total_len(content: str) -> str:
 
 
 def detect_repo_slug() -> str:
-    for cand in (os.environ.get("FINANCE_DAILY_REPO", ""),):
-        cand = cand.strip()
-        if cand:
-            return cand.split("github.com/")[-1].removesuffix(".git").strip("/")
-    try:
-        out = subprocess.run(
-            ["git", "-C", str(ROOT), "remote", "get-url", "origin"],
-            capture_output=True, text=True, timeout=5,
-        )
-    except Exception:
-        return ""
-    if out.returncode != 0:
-        return ""
-    url = out.stdout.strip()
-    m = re.search(r"github\.com[:/](.+?)(?:\.git)?$", url)
-    return m.group(1) if m else ""
+    """仓库 slug 只从 maintainer/repo.txt 读。
+
+    曾经这里读 `git remote get-url origin`，后果是生成物依赖运行环境：
+    本地还没加 remote 时生成一版、CI checkout 后又有 remote 生成另一版，
+    --check 在 CI 里必然报「7 个文件全部漂移」。生成物必须可复现，
+    所以唯一来源是签入仓库的 repo.txt（环境变量仅供临时覆盖）。
+    """
+    env = os.environ.get("FINANCE_DAILY_REPO", "").strip()
+    if env:
+        return env.split("github.com/")[-1].removesuffix(".git").strip("/")
+    if REPO_FILE.is_file():
+        line = REPO_FILE.read_text(encoding="utf-8").strip().splitlines()
+        return line[0].strip() if line else ""
+    return ""
 
 
 def read_skill() -> tuple[str, str, str]:
@@ -320,7 +325,7 @@ def build(check: bool) -> int:
         for p in problems:
             print(f"ERROR: {p}")
         return 1
-    print(f"\n生成完成（SKILL.md v{version}" + (f"，repo={slug}" if slug else "，未检测到 git remote，安装器一行已省略") + "）")
+    print(f"\n生成完成（SKILL.md v{version}" + (f"，repo={slug}" if slug else "，未配置 maintainer/repo.txt，安装器一行已省略") + "）")
     return 0
 
 

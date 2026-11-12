@@ -27,6 +27,14 @@ ROOT = Path(__file__).resolve().parent.parent
 SKILL_MD = ROOT / "SKILL.md"
 ADAPTERS_DIR = ROOT / "adapters"
 
+# Windows 控制台默认 GBK/cp1252，中文与 ✓ 会抛 UnicodeEncodeError（CI 的 windows-latest 上真炸过：
+# UnicodeEncodeError: 'charmap' codec can't encode character '\u2713'）。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 # --- 规范常量（Agent Skills spec）-------------------------------------------------
 NAME_MAX = 64
 DESC_MIN, DESC_MAX = 1, 1024

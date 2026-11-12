@@ -14,6 +14,14 @@
 """
 import sys
 from pathlib import Path
+
+# Windows 控制台默认 GBK/cp1252，中文报错信息会抛 UnicodeEncodeError。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 from PIL import Image, ImageChops
 from playwright.sync_api import sync_playwright
 

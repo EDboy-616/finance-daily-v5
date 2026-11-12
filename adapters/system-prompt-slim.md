@@ -2,11 +2,12 @@
 
 # finance-daily-v5 · 系统提示词精简版（GPTs / Kimi / DeepSeek / 豆包 等有字数上限的宿主）
 
-> 由 SKILL.md v5.0.0 生成 · 整篇 2326 字符
+> 由 SKILL.md v5.0.0 生成 · 整篇 2428 字符
 
 ## 安装
 
 1. **注入式（触发词自动生效的唯一途径）**：把本文件整篇放到 `宿主的系统提示词 / 人设与回复逻辑 / 自定义指令`。
+3. **通用安装器**：`npx skills add EDboy-616/finance-daily-v5`（或 `python scripts/install.py --list` 看全部目标）。
 
 ## 触发
 

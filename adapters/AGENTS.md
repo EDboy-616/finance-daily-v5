@@ -2,12 +2,13 @@
 
 # finance-daily-v5 · AGENTS.md 适配（OpenAI Codex CLI / GitHub Copilot / 一切读 AGENTS.md 的 Agent）
 
-> 由 SKILL.md v5.0.0 生成 · 整篇 10021 字符
+> 由 SKILL.md v5.0.0 生成 · 整篇 10123 字符
 
 ## 安装
 
 1. **注入式（触发词自动生效的唯一途径）**：把本文件整篇放到 `AGENTS.md（仓库根）或 ~/.codex/AGENTS.md`。
 2. **原生 skills（按需加载，省上下文）**：把整个仓库复制为 `~/.agents/skills/finance-daily-v5/`，由宿主按 description 自动加载或按各家语法显式调用。
+3. **通用安装器**：`npx skills add EDboy-616/finance-daily-v5`（或 `python scripts/install.py --list` 看全部目标）。
 
 ## 触发
 

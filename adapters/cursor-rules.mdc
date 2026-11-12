@@ -7,12 +7,13 @@ alwaysApply: false
 
 # finance-daily-v5 · Cursor Project Rules 适配
 
-> 由 SKILL.md v5.0.0 生成 · 整篇 9998 字符
+> 由 SKILL.md v5.0.0 生成 · 整篇 10101 字符
 
 ## 安装
 
 1. **注入式（触发词自动生效的唯一途径）**：把本文件整篇放到 `.cursor/rules/finance-daily-v5.mdc`。
 2. **原生 skills（按需加载，省上下文）**：把整个仓库复制为 `.cursor/skills/finance-daily-v5/`，由宿主按 description 自动加载或按各家语法显式调用。
+3. **通用安装器**：`npx skills add EDboy-616/finance-daily-v5`（或 `python scripts/install.py --list` 看全部目标）。
 
 ## 触发
 
