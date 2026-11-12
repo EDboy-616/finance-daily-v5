@@ -152,11 +152,11 @@ python scripts/fetch_public.py --date 2026-11-12 --out-dir ./raw
 
 | 宿主 | inject 目标 | 原生 skills（项目 / 全局） |
 |:--|:--|:--|
-| **Claude Code / claude.ai** | `CLAUDE.md` | `.claude/skills/` · `~/.claude/skills/` |
-| **OpenAI Codex CLI** | `AGENTS.md` | `.agents/skills/` · `~/.agents/skills/` |
-| **GitHub Copilot / VS Code** | `AGENTS.md` | `.github/skills/` · `~/.copilot/skills/` |
-| **Gemini CLI** | `GEMINI.md` | `.gemini/skills/` · `~/.gemini/skills/` |
-| **Qwen Code** | `QWEN.md` | `.qwen/skills/` · `~/.qwen/skills/` |
+| **Claude Code / claude.ai** | `CLAUDE.md` | `.claude/skills/`<br>`~/.claude/skills/` |
+| **OpenAI Codex CLI** | `AGENTS.md` | `.agents/skills/`<br>`~/.agents/skills/` |
+| **GitHub Copilot / VS Code** | `AGENTS.md` | `.github/skills/`<br>`~/.copilot/skills/` |
+| **Gemini CLI** | `GEMINI.md` | `.gemini/skills/`<br>`~/.gemini/skills/` |
+| **Qwen Code** | `QWEN.md` | `.qwen/skills/`<br>`~/.qwen/skills/` |
 | **Cursor** | `.cursor/rules/finance-daily-v5.mdc` | `.cursor/skills/` |
 | **OpenCode / TRAE / Kiro / Roo / Goose / CodeBuddy / Antigravity** | `AGENTS.md` | 各自的 `<宿主>/.skills/`（见 `install.py --list`） |
 | **GPTs / Kimi / DeepSeek / 豆包 / GLM（纯对话）** | 手工粘贴系统提示词 | — |
