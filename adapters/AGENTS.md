@@ -2,7 +2,7 @@
 
 # finance-daily-v5 · AGENTS.md 适配（OpenAI Codex CLI / GitHub Copilot / 一切读 AGENTS.md 的 Agent）
 
-> 由 SKILL.md v5.0.0 生成 · 本文件约 9044 字符
+> 由 SKILL.md v5.0.0 生成 · 整篇 10021 字符
 
 ## 安装
 

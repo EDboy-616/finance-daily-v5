@@ -42,8 +42,23 @@ ADAPTERS_DIR = ROOT / "adapters"
 
 SKILL_NAME = "finance-daily-v5"
 
-# 仓库地址不写死：优先环境变量 FINANCE_DAILY_REPO，其次 git remote origin，都拿不到就不输出这行。
-# （旧版在这里留了个从未被使用的 REPO_URL 常量 + `<你的用户名>` 占位符，属于死代码。）
+# 「整篇 NNNN 字符」的占位符：整篇拼完才知道真实长度，先占位再回填（等长替换，不引入漂移）
+TOTAL_LEN_SLOT = "####"
+
+
+def fill_total_len(content: str) -> str:
+    """把 TOTAL_LEN_SLOT 换成整篇最终字符数。
+
+    槽位字符数与真实位数通常不同（4 位占位 vs 5 位数字），替换后总长会变，
+    所以迭代到不动点：n 稳定时，填进去的数字就等于整篇真实长度。
+    """
+    n = len(content)
+    for _ in range(8):
+        filled = content.replace(TOTAL_LEN_SLOT, str(n))
+        if len(filled) == n:
+            return filled
+        n = len(filled)
+    return content.replace(TOTAL_LEN_SLOT, str(n))
 
 
 def detect_repo_slug() -> str:
@@ -230,7 +245,8 @@ CAPABILITY_LINE = (
 def render_header(meta: dict, version: str, slug: str, body_len: int, src_note: str, with_marker: bool = True) -> str:
     lines = ([marker(version, src_note), ""] if with_marker else [])
     lines += [f"# {SKILL_NAME} · {meta['title']}", ""]
-    lines += [f"> 由 SKILL.md v{version} 生成 · 本文件约 {body_len} 字符", ""]
+    # 占位符先占位，整篇拼完后再回填真实总长度（宿主按整篇字符数算上下文预算）
+    lines += [f"> 由 SKILL.md v{version} 生成 · 整篇 {TOTAL_LEN_SLOT} 字符", ""]
     lines += ["## 安装", ""]
     lines += install_lines(slug, meta.get("native"), meta.get("inject"))
     lines += ["", "## 触发", "", meta["trigger"], ""]
@@ -278,6 +294,7 @@ def build(check: bool) -> int:
             content = render_header(meta, version, slug, len(inner), src_note) + inner
         if not content.endswith("\n"):
             content += "\n"
+        content = fill_total_len(content)
         out = ADAPTERS_DIR / fname
         if check:
             if not out.exists():

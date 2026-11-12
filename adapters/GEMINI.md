@@ -2,7 +2,7 @@
 
 # finance-daily-v5 · GEMINI.md 适配（Gemini CLI）
 
-> 由 SKILL.md v5.0.0 生成 · 本文件约 9044 字符
+> 由 SKILL.md v5.0.0 生成 · 整篇 9831 字符
 
 ## 安装
 

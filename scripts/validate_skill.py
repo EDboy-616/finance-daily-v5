@@ -272,6 +272,12 @@ def main() -> int:
             for f_, cap, note in WARN_OVER:
                 if f_ == rel and len(content) > cap:
                     warn(f"{rel} {len(content)} 字符 > {cap}（{note}）")
+            # 文件头自报的「整篇 N 字符」必须等于真实长度 —— 用户按这个数字判断
+            # 会不会撞上宿主上限，报错数字比不报更糟。
+            m = re.search(r"整篇 (\d+) 字符", content)
+            if m and int(m.group(1)) != len(content):
+                err(f"{rel} 头部自报「整篇 {m.group(1)} 字符」与实际 {len(content)} 不符"
+                    f"（build_adapters.py 的 fill_total_len 回填出错）")
         ok(f"adapters/ {len(files)} 个文件 marker/换行符/上限检查通过")
     else:
         warn("没有 adapters/ 目录（若刻意只发原生 skill，可忽略）")

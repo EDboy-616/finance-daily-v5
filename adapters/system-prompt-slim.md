@@ -2,7 +2,7 @@
 
 # finance-daily-v5 · 系统提示词精简版（GPTs / Kimi / DeepSeek / 豆包 等有字数上限的宿主）
 
-> 由 SKILL.md v5.0.0 生成 · 本文件约 1645 字符
+> 由 SKILL.md v5.0.0 生成 · 整篇 2326 字符
 
 ## 安装
 

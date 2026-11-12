@@ -2,7 +2,7 @@
 
 # finance-daily-v5 · CLAUDE.md 适配（Claude Code / Agent SDK 项目级兜底）
 
-> 由 SKILL.md v5.0.0 生成 · 本文件约 9044 字符
+> 由 SKILL.md v5.0.0 生成 · 整篇 9815 字符
 
 ## 安装
 

@@ -2,7 +2,7 @@
 
 # finance-daily-v5 · 系统提示词全文版（Claude Projects / GLM 智能体 等无公开字数上限的宿主）
 
-> 由 SKILL.md v5.0.0 生成 · 本文件约 9044 字符
+> 由 SKILL.md v5.0.0 生成 · 整篇 9732 字符
 
 ## 安装
 
