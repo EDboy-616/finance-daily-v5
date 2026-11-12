@@ -100,6 +100,7 @@ python scripts/render.py <input.html> <output.png> [scale=3]
 
 1. **适配层漂移误报**：`detect_repo_slug()` 原本读 `git remote get-url origin`。本地没加 remote 时生成一版，CI checkout 后带 remote 生成另一版，`--check` 在 CI 必然报「7 个文件全部漂移」。现在唯一来源是签入仓库的 `maintainer/repo.txt`（一行 `EDboy-616/finance-daily-v5`），`FINANCE_DAILY_REPO` 环境变量仅作临时覆盖。**换仓库地址要同时改 repo.txt 和 README 克隆地址。**
 2. **Windows stdout 编码**：`validate_skill.py` 打印 `✓` 时 runner 的 cp1252 抛 `UnicodeEncodeError`。`build_adapters.py` / `validate_skill.py` / `render.py` 现在开头都 `reconfigure(encoding="utf-8", errors="replace")`。新脚本必须照做，否则 windows-latest 会挂。
+3. **提交作者邮箱里的数字 ID 必须是该账号自己的**：本机曾有 EDboy-628 与 EDboy-616 两个 GitHub 账号，noreply 邮箱前缀的 `137130507` 是 628 的 ID。配成 `137130507+EDboy-616@users.noreply.github.com` 时 GitHub 按前缀 ID 匹配，把提交记到 **EDboy-628** 名下（网页贡献者列表串号）。616 的真实 ID 是 **354708082**，正确写法 `354708082+EDboy-616@users.noreply.github.com`。查真实 ID：`GET /users/<login>` 的 `id` 字段，或 `GET /user` 看 token 属于谁。
 
 ## 7. 待办（接手后可做）
 
@@ -111,6 +112,6 @@ python scripts/render.py <input.html> <output.png> [scale=3]
 ## 8. 联系上下文
 
 - 用户中文交流，偏好直接执行、不过度确认；此前已授权在本 test 目录内创建文件与 git 操作，并于 2026-11-12 明确同意推送 GitHub（已完成）。**后续改动默认本地提交 + 推送；若用户说"先别推"则以他为准。**
-- 仓库：`https://github.com/EDboy-616/finance-daily-v5`（public）。注意本机 `git config` 全局身份原为 EDboy-628，已改为 EDboy-616；GitHub 凭据管理器里两个账号的 token 都在，推送用的是 EDboy-616 的（scope: gist/repo/workflow）。
+- 仓库：`https://github.com/EDboy-616/finance-daily-v5`（public）。注意本机 `git config` **全局**身份仍是 EDboy-628，**本仓库 local 身份已改为 EDboy-616 / `354708082+EDboy-616@users.noreply.github.com`**；GitHub 凭据管理器里两个账号的 token 都在，推送用的是 EDboy-616 的（scope: gist/repo/workflow）。历史前 6 个提交作者仍是 EDboy-628（上一轮会话的真实身份，未改写）。
 - 原始 zip：`C:\WPS\Downloads\skills-export-20261112\finance-daily-v5.zip`（另有同名导出包含 WorkBuddy 原版，与本仓库无关）。
 - 本轮调研笔记：`C:\AIdocument\GitHub-cc-ds\skill-2\test\_notes\agent-skills-conventions.md`。
