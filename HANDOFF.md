@@ -96,8 +96,8 @@ python scripts/render.py <input.html> <output.png> [scale=3]
 ## 7. 待办（接手后可做）
 
 1. **端到端实跑一次**（最高价值）：跑完 Step 0~7 出真实日报，验证渲染裁边与双交付。裁边逻辑依赖模板纸底色 `#f7f4ed`，改模板配色会破坏裁边。
-2. **推 GitHub**（用户明确暂缓，等他说可以再做）：`git remote add origin <URL> && git push -u origin main`。README 里的克隆地址已按 `EDboy-628/finance-daily-v5` 写好，仓库建好后无需再改；若要换名，`git remote` 与 README 两处同步。
-3. 可选：`claude plugin validate .` 实跑一次（需装 claude CLI）；`npx skills add EDboy-628/finance-daily-v5` 验证 skills.sh 能发现本仓库根 SKILL.md。
+2. **推 GitHub**（用户明确暂缓，等他说可以再做）：`git remote add origin <URL> && git push -u origin main`。README 里的克隆地址已按 `EDboy-616/finance-daily-v5` 写好，仓库建好后无需再改；若要换名，`git remote` 与 README 两处同步。
+3. 可选：`claude plugin validate .` 实跑一次（需装 claude CLI）；`npx skills add EDboy-616/finance-daily-v5` 验证 skills.sh 能发现本仓库根 SKILL.md。
 4. 可选：CI 里的 `fetch_public.py` 数据源巡检（现在是 smoke 只跑 `--help`，没联网，避免网络抖动误报）。
 
 ## 8. 联系上下文

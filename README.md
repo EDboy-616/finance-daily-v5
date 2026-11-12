@@ -100,7 +100,7 @@ finance-daily-v5/
 ### ① 一行装（推荐，两种模式都能选）
 
 ```bash
-git clone https://github.com/EDboy-628/finance-daily-v5.git
+git clone https://github.com/EDboy-616/finance-daily-v5.git
 cd finance-daily-v5
 
 python scripts/install.py --list                    # 先看 14 类宿主的落点
@@ -117,11 +117,11 @@ python scripts/install.py --target all --global     # 全局装（~/.claude/skil
 
 ```bash
 # 个人级（所有项目可用）
-git clone https://github.com/EDboy-628/finance-daily-v5.git ~/.claude/skills/finance-daily-v5
+git clone https://github.com/EDboy-616/finance-daily-v5.git ~/.claude/skills/finance-daily-v5
 # Windows PowerShell: $env:USERPROFILE\.claude\skills\finance-daily-v5
 
 # 项目级
-git clone https://github.com/EDboy-628/finance-daily-v5.git .claude/skills/finance-daily-v5
+git clone https://github.com/EDboy-616/finance-daily-v5.git .claude/skills/finance-daily-v5
 ```
 
 其他宿主把路径换成 `.agents/skills/`、`.gemini/skills/`、`.qwen/skills/` 等（见上表）。
