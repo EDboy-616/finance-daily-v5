@@ -89,19 +89,28 @@ python scripts/render.py <input.html> <output.png> [scale=3]
 - ✅ `install.py` 实测（2026-11-12，在 `test/_install_probe*/` 隔离目录）：inject 新建 / 追加 / 替换受管块均幂等，块外用户文本保留；skill 模式只复制 `SKILL.md + scripts/(仅 fetch_public.py、render.py) + assets/ + LICENSE`（维护脚本不进安装副本），重复跑无 `--force` 正确拒绝（exit 1）；`--project` 指定项目根生效；`--target all` 对共用落点去重。
 - ✅ `render.py` 端到端验证过：拿 `assets/market_news_template.html` 改日期渲染出 3240×8631 的 3x PNG，裁边正常、13 个板块与 ticker 十卡都在。playwright + Pillow 已在本机装好（chromium-1248 在 `%LOCALAPPDATA%\ms-playwright`）；`file:///" +` 拼接的旧 bug 已修为 `Path.resolve().as_uri()`，validator 有回归守卫。
 - ⚠️ **未做真实日报端到端**：模板渲染链路已验证，但 Step 0~7 的完整流程（含检索新闻、填内容）尚未串起来出过一张真图。
+- ✅ **已推送到 https://github.com/EDboy-616/finance-daily-v5（public，默认分支 main）**，CI `verify` 在 ubuntu-latest 与 windows-latest 双平台全绿；`dist/*.zip` 作为 artifact 留档（约 27 KB）。
 - ⚠️ `install.py` 的宿主路径表来自官方文档 + skills.sh / skillfish / ruler 三家交叉核对，但未逐台实测；OpenCode / TRAE / Kiro / Roo / Goose / CodeBuddy / Antigravity 七家沿用社区约定。
 - ⚠️ `claude plugin validate .` 未跑过（本机 `gh` 未登录、未装 claude CLI）；`.claude-plugin/marketplace.json` 结构按官方实例写，`validate_skill.py` 只做了结构自检。
 - ⚠️ 乱码说明：`skill-2/test/_extracted/` 下两个文件名乱码的 md 是原 zip GBK 文件名导致（内容是「README_安装说明.md」和「打包说明_金融日报V5.md」），内容已无损失，不影响仓库。
 
+## 6b. CI 踩过的两个坑（已修，别改回去）
+
+两个坑根因相同：**生成结果依赖运行环境，等于不可复现**。
+
+1. **适配层漂移误报**：`detect_repo_slug()` 原本读 `git remote get-url origin`。本地没加 remote 时生成一版，CI checkout 后带 remote 生成另一版，`--check` 在 CI 必然报「7 个文件全部漂移」。现在唯一来源是签入仓库的 `maintainer/repo.txt`（一行 `EDboy-616/finance-daily-v5`），`FINANCE_DAILY_REPO` 环境变量仅作临时覆盖。**换仓库地址要同时改 repo.txt 和 README 克隆地址。**
+2. **Windows stdout 编码**：`validate_skill.py` 打印 `✓` 时 runner 的 cp1252 抛 `UnicodeEncodeError`。`build_adapters.py` / `validate_skill.py` / `render.py` 现在开头都 `reconfigure(encoding="utf-8", errors="replace")`。新脚本必须照做，否则 windows-latest 会挂。
+
 ## 7. 待办（接手后可做）
 
 1. **端到端实跑一次**（最高价值）：跑完 Step 0~7 出真实日报，验证渲染裁边与双交付。裁边逻辑依赖模板纸底色 `#f7f4ed`，改模板配色会破坏裁边。
-2. **推 GitHub**（用户明确暂缓，等他说可以再做）：`git remote add origin <URL> && git push -u origin main`。README 里的克隆地址已按 `EDboy-616/finance-daily-v5` 写好，仓库建好后无需再改；若要换名，`git remote` 与 README 两处同步。
-3. 可选：`claude plugin validate .` 实跑一次（需装 claude CLI）；`npx skills add EDboy-616/finance-daily-v5` 验证 skills.sh 能发现本仓库根 SKILL.md。
-4. 可选：CI 里的 `fetch_public.py` 数据源巡检（现在是 smoke 只跑 `--help`，没联网，避免网络抖动误报）。
+2. 可选：`claude plugin validate .` 实跑一次（需装 claude CLI）；`npx skills add EDboy-616/finance-daily-v5` 验证 skills.sh 能发现本仓库根 SKILL.md。
+3. 可选：CI 里的 `fetch_public.py` 数据源巡检（现在是 smoke 只跑 `--help`，没联网，避免网络抖动误报）。
+4. 可选：给仓库加 topics（`agent-skills`、`claude-skills`、`finance`）提升可发现性。
 
 ## 8. 联系上下文
 
-- 用户中文交流，偏好直接执行、不过度确认；此前已授权在本 test 目录内创建文件与 git 操作。**但推送 GitHub 必须等他明确同意。**
+- 用户中文交流，偏好直接执行、不过度确认；此前已授权在本 test 目录内创建文件与 git 操作，并于 2026-11-12 明确同意推送 GitHub（已完成）。**后续改动默认本地提交 + 推送；若用户说"先别推"则以他为准。**
+- 仓库：`https://github.com/EDboy-616/finance-daily-v5`（public）。注意本机 `git config` 全局身份原为 EDboy-628，已改为 EDboy-616；GitHub 凭据管理器里两个账号的 token 都在，推送用的是 EDboy-616 的（scope: gist/repo/workflow）。
 - 原始 zip：`C:\WPS\Downloads\skills-export-20261112\finance-daily-v5.zip`（另有同名导出包含 WorkBuddy 原版，与本仓库无关）。
 - 本轮调研笔记：`C:\AIdocument\GitHub-cc-ds\skill-2\test\_notes\agent-skills-conventions.md`。
