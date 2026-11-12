@@ -13,6 +13,7 @@
     再叠加 40px 安全边距，避免页脚下方大段留白。
 """
 import sys
+from pathlib import Path
 from PIL import Image, ImageChops
 from playwright.sync_api import sync_playwright
 
@@ -22,13 +23,18 @@ VIEWPORT_HEIGHT = 2400
 
 
 def render(html_path: str, out_png: str, scale: int = DEFAULT_SCALE):
+    # 宿主调用本 skill 时当前工作目录通常不是 skill 目录，因此入参可能是相对路径：
+    # 统一解析成绝对路径再转 file:// URI（as_uri 同时处理 Windows 盘符与 POSIX 斜杠）。
+    src = Path(html_path).expanduser().resolve()
+    if not src.is_file():
+        raise SystemExit(f"HTML not found: {src}")
     with sync_playwright() as p:
         browser = p.chromium.launch(args=["--no-sandbox", "--disable-gpu"])
         page = browser.new_page(
             device_scale_factor=scale,
             viewport={"width": VIEWPORT_WIDTH, "height": VIEWPORT_HEIGHT},
         )
-        page.goto("file:///" + html_path)
+        page.goto(src.as_uri())
         page.wait_for_timeout(700)
         page.screenshot(path=out_png, full_page=True)
         browser.close()
@@ -50,4 +56,5 @@ if __name__ == "__main__":
         print("usage: python scripts/render.py <input_html> <output_png> [scale=3]")
         sys.exit(1)
     scale = int(sys.argv[3]) if len(sys.argv) > 3 else DEFAULT_SCALE
+    Path(sys.argv[2]).expanduser().parent.mkdir(parents=True, exist_ok=True)
     render(sys.argv[1], sys.argv[2], scale)

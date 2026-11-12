@@ -1,6 +1,7 @@
 # 运行产物
 raw/
 outputs/
+dist/
 *.html
 !assets/market_news_template.html
 
@@ -14,3 +15,18 @@ venv/
 .DS_Store
 Thumbs.db
 *.swp
+
+# 在仓库自身内自测安装（scripts/install.py 不带 --project 时）会生成的宿主目录；
+# 正式使用请装进你自己的项目目录或加 --global，本仓库不签入这些副本。
+/.claude/
+/.agents/
+/.gemini/
+/.qwen/
+/.cursor/
+/.codebuddy/
+/.github/skills/
+/AGENTS.md
+/GEMINI.md
+/QWEN.md
+/CLAUDE.md
+

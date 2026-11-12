@@ -1,17 +1,16 @@
 ---
 name: finance-daily-v5
-description: 生成「金融日报」信息图（金融市场要闻日报 V5）。当用户说"金融日报""金融市场要闻""要闻更新""市场要闻日报""今天的金融要闻"等（触发词）时使用。V5 = 报刊风长图（暖纸底+金线+红涨绿跌）+ 双交付（HTML + 高清 PNG）+ **纯公开数据源**（零连接器、零 API Key、零积分）：脚本直连新浪/CNBC/深交所/美国财政部等公开接口取硬行情，WebSearch + WebFetch 抓新华社/证券时报/上证报/东方财富/AP News/美联储 H.15 等权威源做新闻与交叉核对。产出纯市场要闻，禁止加入个人持仓/自选品种等个性化内容，页面内禁止出现风格/流程自述。
+description: 生成「金融日报」信息图（金融市场要闻日报 V5）。当用户说"金融日报""金融市场要闻""要闻更新""市场要闻日报""今天的金融要闻"等（触发词）时使用。V5 = 报刊风长图（暖纸底+金线+红涨绿跌）+ 双交付（HTML + 高清 PNG）+ **纯公开数据源**（零连接器、零 API Key、零积分）：脚本直连新浪/CNBC/深交所/美国财政部等公开接口取硬行情，用「检索网页 + 打开网页」抓新华社/证券时报/上证报/东方财富/AP News/美联储 H.15 等权威源做新闻与交叉核对。产出纯市场要闻，禁止加入个人持仓/自选品种等个性化内容，页面内禁止出现风格/流程自述。
 license: MIT
+compatibility: "需要宿主具备：执行 Python 3.8+ 命令、联网检索、打开网页抓正文、读写本地文件四类能力。行情接口需公网可达（新浪/CNBC/深交所/美国财政部）。PNG 渲染另需 playwright + chromium 与 Pillow，缺失时只交付 HTML。缺能力一律按正文 §9 降级，不因此放宽数据铁律。"
 metadata:
-  version: 5.0.0
+  version: "5.0.0"
   author: finance-daily-v5 contributors
 ---
 
 
-<!-- 本文件为 Agent Skills 标准格式（frontmatter 仅用 name/description/license/metadata 六字段白名单内的字段），
-     正文与宿主解耦：不引用任何宿主专有工具名，统一用「运行命令」「检索网页」「打开网页」等能力动词。
-     其他宿主（Codex / Gemini / Qwen / Cursor / 对话型代理等）的适配文件由 adapters/ 目录提供，
-     改动正文时请同步运行 python scripts/build_adapters.py 重新生成适配文件，避免多份文件漂移。 -->
+<!-- 本文件 = 唯一正文事实源（Agent Skills 开放规范）。改完正文必须跑 scripts/build_adapters.py 重新生成 adapters/，
+     并跑 scripts/validate_skill.py 自检。正文禁止出现宿主专有工具名，只用「执行命令 / 检索网页 / 打开网页 / 读写文件」四个能力动词。 -->
 
 
 # 金融日报 V5
@@ -25,12 +24,21 @@ metadata:
 **V5 相对 V4 的根本变化（2026-09-29 改造，用户拍板）**：
 - **砍掉全部 MCP 连接器依赖**（ftShare / 万得 Wind / 通达信问小达 全部不再使用），改为**公开权威源**取数。理由：连接器频繁掉线、授权麻烦、问小达按次扣积分；公开源更快捷、可复核、零成本。
 - **硬行情走脚本**（`scripts/fetch_public.py`，纯标准库，无第三方依赖）：一次跑出 A股/港股/美股/美债/商品/汇率全部点位。
-- **新闻与交叉核对走 WebSearch + WebFetch**：新华社、证券时报、上海证券报、中国证券报、东方财富、新浪财经、财联社、第一财经、央广网、中新经纬、上交所/深交所/港交所官网、央行、美联储 H.15、AP News 等。
+- **新闻与交叉核对走「检索网页 + 打开网页」**：新华社、证券时报、上海证券报、中国证券报、东方财富、新浪财经、财联社、第一财经、央广网、中新经纬、上交所/深交所/港交所官网、央行、美联储 H.15、AP News 等。
 - 版面样式、双交付（HTML + PNG）、红涨绿跌、自审清单**沿用 V4**，不变。
 
 ## 触发词
 
 金融市场要闻 / 市场要闻 / 要闻更新 / 金融要闻日报 / 今天的市场要闻 / 金融日报
+
+---
+
+## §0 路径基准（跨宿主第一步，别跳过）
+
+- 本文件所在目录记为 `<SKILL_DIR>`（即包含本 SKILL.md 的文件夹）。**宿主「执行命令」时的工作目录通常是用户的项目目录，不是 `<SKILL_DIR>`**，所以下文所有脚本与模板都必须写成 `<SKILL_DIR>/...` 的完整路径，不要假设相对路径能命中。
+- 定位 `<SKILL_DIR>`：优先用宿主报出的 skill 路径；否则按安装位置逐个探测（`.claude/skills/finance-daily-v5`、`~/.claude/skills/finance-daily-v5`、`.agents/skills/finance-daily-v5`、`~/.agents/skills/finance-daily-v5`），仍找不到就按文件名 `market_news_template.html` 检索。
+- **产物一律写到当前工作目录**：行情 JSON → `./raw/`，成稿 HTML/PNG → `./outputs/`。不要往 `<SKILL_DIR>` 里写（安装目录可能只读，也不该被一次运行污染）。
+- `scripts/render.py` 的 HTML 入参相对/绝对都可（内部会解析成绝对 `file://` URI）；输出 PNG 路径按当前工作目录解析，父目录不存在会自动创建。
 
 ---
 
@@ -53,11 +61,11 @@ metadata:
 
 运行：
 ```bash
-python scripts/fetch_public.py --date YYYY-MM-DD --out-dir ./raw
+python "<SKILL_DIR>/scripts/fetch_public.py" --date YYYY-MM-DD --out-dir ./raw
 ```
 输出 `raw/market_YYYYMMDD.json` + 控制台摘要。每个字段带 `src`/`status`；**失败的源只标 `fail`，绝不编造、绝不回退旧值**。
 
-### B. 新闻与政策（WebSearch / WebFetch）
+### B. 新闻与政策（检索网页 / 打开网页）
 
 | 类别 | 权威源 |
 |------|--------|
@@ -78,9 +86,9 @@ python scripts/fetch_public.py --date YYYY-MM-DD --out-dir ./raw
 
 ### Step 1 · 跑脚本取硬行情（必做，1 次；需宿主具备「执行命令」能力）
 ```bash
-python scripts/fetch_public.py --date <YYYY-MM-DD> --out-dir ./raw
+python "<SKILL_DIR>/scripts/fetch_public.py" --date <YYYY-MM-DD> --out-dir ./raw
 ```
-- 看控制台：若有 `失败源(必须补)`，该指标必须改用新闻源或 WebFetch 补，禁止猜数。
+- 看控制台：若有 `失败源(必须补)`，该指标必须改用新闻源或「打开网页」定点补，禁止猜数。
 - `可选交叉源未取到(可跳过)` 可忽略（FRED / 东财）。
 
 ### Step 2 · 网页检索新闻（6 个主题，各 1 次，必带 `freshness=d1`；需宿主具备「检索网页」能力，没有时见 §9 降级策略）
@@ -145,7 +153,7 @@ python scripts/fetch_public.py --date <YYYY-MM-DD> --out-dir ./raw
 
 ## §4 渲染模板
 
-模板：`assets/market_news_template.html`（V5 沿用 V4 报刊风，含响应式 @media + ticker + 全部 section 结构，顶部注释已更新为 V5）。
+模板：`<SKILL_DIR>/assets/market_news_template.html`（V5 沿用 V4 报刊风，含响应式 @media + ticker + 全部 section 结构，顶部注释已更新为 V5）。
 **用法**：复制模板 → 改头部日期/数据时间 → 替换 ticker 十卡 → 替换头版主稿+TOP5 → 替换各 section 的 `.news-col` / `.sector` / `.tbl` → 更新 note-box 数据源措辞与 foot 时间。
 
 **样式铁律（勿改）**：
@@ -160,9 +168,9 @@ python scripts/fetch_public.py --date <YYYY-MM-DD> --out-dir ./raw
 ## §5 渲染出 PNG（Playwright，默认 3x）
 
 ```bash
-python scripts/render.py <input_html> <output_png>        # 默认 3x
-python scripts/render.py <input_html> <output_png> 4      # 更高清
-python scripts/render.py <input_html> <output_png> 2      # 降体积
+python "<SKILL_DIR>/scripts/render.py" <input_html> <output_png>      # 默认 3x
+python "<SKILL_DIR>/scripts/render.py" <input_html> <output_png> 4    # 更高清
+python "<SKILL_DIR>/scripts/render.py" <input_html> <output_png> 2    # 降体积
 ```
 
 逻辑：`device_scale_factor=3`、viewport 1080×2400 → full_page 截图 → Pillow 按内容 bbox 裁上下空白 + 40px 安全边距（背景比对色 `#f7f4ed` 与模板纸底对齐）。
@@ -199,7 +207,7 @@ python scripts/render.py <input_html> <output_png> 2      # 降体积
 
 ## §8 已知坑（实测，别踩）
 
-- **东财 push2 与 FRED 在部分网络环境（本地代理/强制 HTTP2）会被拒**：Python urllib 报 `RemoteDisconnected`、Windows curl.exe 报 `schannel: server closed abruptly`。脚本已把它们降级为可选交叉源，失败不影响主流程；**不要反复重试**，改用新闻源或 WebFetch。
+- **东财 push2 与 FRED 在部分网络环境（本地代理/强制 HTTP2）会被拒**：Python urllib 报 `RemoteDisconnected`、Windows curl.exe 报 `schannel: server closed abruptly`。脚本已把它们降级为可选交叉源，失败不影响主流程；**不要反复重试**，改用新闻源或「打开网页」。
 - **美股 `curmktstatus=REG_MKT` = 盘中**：美东 16:00 前取到的都是盘中价，写稿必须标注"截至 X 时盘中"，不得写成收盘。
 - **新浪深市成交额 ≠ 深交所官方口径**：实测偏差约 0.1%~0.2%（成分 vs 全市场），属正常；>0.5% 才需在数据说明标注。
 - **财政部收益率曲线为 T-1 发布**：当日美债收益率要次一工作日才出，写稿标注其日期（如"9/28 官方值"）。
@@ -215,15 +223,15 @@ python scripts/render.py <input_html> <output_png> 2      # 降体积
 
 | 宿主能力 | 满足时 | 缺失时降级策略 |
 |---------|--------|---------------|
-| 执行命令（跑 fetch_public.py） | 硬行情一次取齐 | 改用 WebSearch/WebFetch 逐项取数；再没有 → 全部板块按下方「无检索」处理 |
-| 检索网页（WebSearch 类） | 6 主题新闻采集 | 用「打开网页」直接访问 §1-B 权威源首页/栏目页找当日要闻 |
-| 打开网页（WebFetch/浏览器类） | 权威站点定点复核 | 跳过定点复核，新闻数字须 ≥2 个独立检索结果一致才可上 ticker |
+| 执行命令（跑 fetch_public.py） | 硬行情一次取齐 | 改用「检索网页 + 打开网页」逐项取数；再没有 → 全部板块按下方「无检索」处理 |
+| 检索网页（搜索类工具） | 6 主题新闻采集 | 用「打开网页」直接访问 §1-B 权威源首页/栏目页找当日要闻 |
+| 打开网页（抓取/浏览器类） | 权威站点定点复核 | 跳过定点复核，新闻数字须 ≥2 个独立检索结果一致才可上 ticker |
 | 渲染依赖（playwright+pillow） | 双交付 HTML+PNG | 只交 HTML，注明"未渲染 PNG（缺 playwright）"；**不要**改用其他截图工具硬渲 |
 
 **降级档位**（按能力从高到低）：
 1. **完整版**（命令+检索+打开+渲染）：全流程，双交付。
 2. **标准版**（命令+检索，无打开网页）：新闻数字 ≥2 源一致才可用；数据说明注明"未经官网定点复核"。
 3. **行情版**（仅命令，无检索）：只出 ticker + 商品表 + 汇率 + 美债等脚本数据板块，新闻类板块标注"本环境无检索能力，未采集新闻"，并在 dateline 写明「纯行情版」。
-4. **只读版**（无命令，纯对话宿主如 GPTs/Kimi/豆包）：告知用户先在本地跑 `python scripts/fetch_public.py`，把 `raw/market_YYYYMMDD.json` 内容（或控制台摘要）粘贴回来，模型基于粘贴数据填模板产出 HTML 文本；新闻部分仅当宿主自带联网检索时才写，否则同档位 3 处理。
+4. **只读版**（无命令，纯对话宿主如 GPTs/Kimi/豆包）：告知用户先在 skill 安装目录（或本仓库根目录）跑 `python scripts/fetch_public.py`，把 `raw/market_YYYYMMDD.json` 内容（或控制台摘要）粘贴回来，模型基于粘贴数据填模板产出 HTML 文本；新闻部分仅当宿主自带联网检索时才写，否则同档位 3 处理。
 
 **铁律不随降级放宽**：任何档位下，取不到的数字一律撤下或标「待核」，禁止编造、禁止取平均；数据说明必须如实披露当期实际用到的源与缺失的能力/源。

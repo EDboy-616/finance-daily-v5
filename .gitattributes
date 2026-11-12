@@ -1,0 +1,16 @@
+# 跨平台换行符：所有文本一律 LF 入库。
+# 没有这个文件，Windows runner / Windows 开发机 checkout 出来的 adapters/ 会变成 CRLF，
+# 而 build_adapters.py --check 生成的是 LF —— CI 会误报漂移，validate_skill.py 也会报 CRLF 错误。
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.zip binary
+
+*.md text eol=lf
+*.mdc text eol=lf
+*.html text eol=lf
+*.py text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf

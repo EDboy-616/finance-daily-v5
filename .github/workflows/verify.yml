@@ -1,0 +1,61 @@
+name: verify
+
+# 这个仓库没有构建步骤，CI 只守三件事：
+#   1) SKILL.md 符合 Agent Skills 开放规范 + 各宿主上限
+#   2) adapters/ 与 SKILL.md 没有漂移（生成物必须签入，改了源就得重跑）
+#   3) 脚本在干净环境里至少能起来（不联网跑真实行情，避免把网络抖动当失败）
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  spec-and-drift:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 规范与宿主上限自检
+        run: python scripts/validate_skill.py
+
+      - name: 适配层漂移检查（不写文件，只比对）
+        run: python scripts/build_adapters.py --check
+
+      - name: 生成物必须已签入且是最新
+        shell: bash
+        run: |
+          set -euo pipefail
+          DRIFT="$(git status --porcelain -- adapters/ SKILL.md .claude-plugin/)"
+          if [ -n "$DRIFT" ]; then
+            echo "::error::以下生成物与源文件不同步，请本地跑 python scripts/build_adapters.py 后一并提交："
+            echo "$DRIFT"
+            git --no-pager diff -- adapters/ | head -60 || true
+            exit 1
+          fi
+          echo "no drift"
+
+      - name: 脚本 smoke（只看能否起、参数是否解析）
+        shell: bash
+        run: |
+          python scripts/fetch_public.py --help >/dev/null
+          python scripts/render.py 2>&1 | head -3 || true
+          python scripts/install.py --list >/dev/null
+          python scripts/package_claudeai.py --dry-run >/dev/null
+
+      - name: 打 claude.ai 上传包（产物留档）
+        run: python scripts/package_claudeai.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: finance-daily-v5-claudeai-zip
+          path: dist/*.zip
+          if-no-files-found: error

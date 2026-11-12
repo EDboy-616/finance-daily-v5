@@ -1,0 +1,19 @@
+{
+  "name": "finance-daily-v5",
+  "owner": {
+    "name": "EDboy-628"
+  },
+  "metadata": {
+    "description": "金融日报 V5 —— 纯公开数据源的报刊风市场要闻日报（HTML + 3x PNG 双交付）",
+    "version": "5.0.0"
+  },
+  "plugins": [
+    {
+      "name": "finance-daily-v5",
+      "description": "说「金融日报」即生成报刊风市场要闻日报：脚本直连新浪/CNBC/深交所/美国财政部取硬行情，检索并打开权威源做交叉核对，产出 HTML + 3x 高清长图双交付。零连接器、零 API Key。",
+      "source": "./",
+      "strict": false,
+      "keywords": ["finance", "daily-report", "market-news", "chinese", "html", "infographic"]
+    }
+  ]
+}

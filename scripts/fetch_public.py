@@ -15,7 +15,7 @@
   1. 只用公开官方/权威接口，不依赖任何 MCP 连接器、不需要 API Key、不扣积分。
   2. 每个数据源独立 try/except；失败只标 status="fail"，**绝不编造、绝不回退旧值**。
   3. 同一指标至少两路交叉（如两市成交：新浪接口 vs 深交所官方），输出 cross 字段供模型核对。
-  4. 新闻类内容不在本脚本内 —— 由模型用 WebSearch/WebFetch 采集（见 SKILL.md §2）。
+  4. 新闻类内容不在本脚本内 —— 由模型「检索网页 / 打开网页」采集（见 SKILL.md §2）。
 
 数据源清单（2026-09-29 实测可用）:
   A股指数+成交额 / 港股  : 新浪财经 hq.sinajs.cn（urllib 直连可用）
@@ -86,6 +86,22 @@ def get(url, headers=None, encoding="utf-8", retries=1):
 def fnum(x):
     try:
         return float(str(x).replace(",", "").strip())
+    except Exception:                                # noqa: BLE001
+        return None
+
+
+def fpct(x):
+    """解析形如 '+1.31%' / '-0.85%' / '1.31' 的涨跌幅字符串 → float 百分数。
+
+    不能直接用 fnum：CNBC 的 change_pct 带百分号，float() 会抛异常返回 None，
+    于是回退到 pct(last, prev_close)；而 CNBC 的 previous_day_closing 有时恰好等于
+    last（数据源自身异常），回退会算出 0.00% —— 一个"看起来正常"的错值。
+    """
+    if x is None:
+        return None
+    s = str(x).replace(",", "").replace("%", "").strip().lstrip("+")
+    try:
+        return round(float(s), 2)
     except Exception:                                # noqa: BLE001
         return None
 
@@ -245,13 +261,21 @@ def cnbc_quote(symbols=(".DJI", ".SPX", ".IXIC")):
         q = (((j.get("FormattedQuoteResult") or {}).get("FormattedQuote") or [{}])[0])
         if not q or q.get("code") not in (0, "0"):
             continue
+        last, chg = fnum(q.get("last")), fnum(q.get("change"))
+        prev = fnum(q.get("previous_day_closing"))
+        chg_pct = fpct(q.get("change_pct"))
+        # 数据源自检：previous_day_closing == last 但有涨跌额 → 前收不可信，用 last-chg 反推。
+        # 否则 pct() 会算出 0.00%（一个看起来正常的错值），比 None 更危险。
+        if prev is not None and last is not None and chg not in (None, 0) and abs(prev - last) < 1e-9:
+            prev = round(last - chg, 4)
+        if chg_pct is None:
+            chg_pct = pct(last, prev)
         out[s.lstrip(".")] = {
-            "name": q.get("name"), "last": fnum(q.get("last")),
-            "chg": fnum(q.get("change")),
-            "pct": fnum(q.get("change_pct")) or pct(fnum(q.get("last")),
-                                                    fnum(q.get("previous_day_closing"))),
+            "name": q.get("name"), "last": last,
+            "chg": chg,
+            "pct": chg_pct,
             "open": fnum(q.get("open")), "high": fnum(q.get("high")),
-            "low": fnum(q.get("low")), "prev_close": fnum(q.get("previous_day_closing")),
+            "low": fnum(q.get("low")), "prev_close": prev,
             "curmktstatus": q.get("curmktstatus"), "last_time": q.get("last_time"),
             "src": "cnbc-quote",
         }
@@ -374,7 +398,7 @@ def summary(d):
     L = [f"日期 {d['meta']['date']}   成功源: {', '.join(d['meta']['ok'])}"]
     if d["meta"].get("fail"):
         L.append("⚠️ 失败源(必须补): " + ", ".join(d["meta"]["fail"]) +
-                 " —— 禁止编造，须改用新闻源或 WebFetch 复核")
+                 " —— 禁止编造，须改用新闻源或「打开网页」复核")
     if d["meta"].get("optional_fail"):
         L.append("· 可选交叉源未取到(可跳过): " + ", ".join(d["meta"]["optional_fail"]))
     cn = d.get("cn_indices") or {}
