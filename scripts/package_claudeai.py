@@ -97,7 +97,10 @@ def main() -> int:
     out_path = Path(a.out).expanduser().resolve() if a.out else (ROOT / "dist" / f"{name}-{ver}.zip")
 
     if not a.no_validate and not a.dry_run:
-        r = subprocess.run([sys.executable, str(ROOT / "scripts" / "validate_skill.py"), "--quiet"])
+        # --allow-dir-mismatch：zip 内的根目录名由 name 强制决定（见 arcname），
+        # 与本地检出目录叫什么无关，所以克隆成别的目录名不该挡住打包。
+        r = subprocess.run([sys.executable, str(ROOT / "scripts" / "validate_skill.py"),
+                            "--quiet", "--allow-dir-mismatch"])
         if r.returncode != 0:
             print("ERROR: validate_skill.py 未通过 —— 先修掉再打包（急用可加 --no-validate）", file=sys.stderr)
             return 1

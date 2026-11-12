@@ -117,6 +117,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Agent Skills 规范 + 宿主上限自检")
     ap.add_argument("--strict", action="store_true", help="WARN 也算失败")
     ap.add_argument("--quiet", action="store_true", help="只输出 ERROR/WARN 与结论")
+    ap.add_argument("--allow-dir-mismatch", action="store_true",
+                    help="允许 name != 父目录名（仅本机自检用；发布/上传前必须去掉）")
     a = ap.parse_args()
 
     if not SKILL_MD.is_file():
@@ -160,7 +162,15 @@ def main() -> int:
             err("name 含控制字符/零宽字符/bidi 覆盖符（Claude Code 会静默不加载）")
         parent = SKILL_MD.parent.name
         if name != parent:
-            err(f"name {name!r} 必须等于父目录名 {parent!r}（规范要求；改名会断掉已安装用户的更新链）")
+            msg = (
+                f"name {name!r} 必须等于父目录名 {parent!r}（规范硬要求，claude.ai 上传与 skills-ref 都会拒）\n"
+                f"        修法二选一：① 把目录改名为 {name!r}（git clone 时直接指定目标目录名）；\n"
+                f"        ② 只是想校验内容而不改目录：加 --allow-dir-mismatch（仅本机自检用，发布前必须去掉）"
+            )
+            if a.allow_dir_mismatch:
+                warn(msg + "\n        （已用 --allow-dir-mismatch 放行）")
+            else:
+                err(msg)
         else:
             ok(f"name = 父目录名 = {name}")
 
