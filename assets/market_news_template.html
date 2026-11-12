@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<!--
+  金融日报 V5 — 报刊风（editorial / 年报风）模板
+  配色：暖纸底 #f7f4ed + 深墨蓝 #1c2230 + 金线 #b08a2e + 红涨 #b23b2e / 绿跌 #1e7a52
+  数据源：纯公开源（脚本直连新浪/CNBC/深交所/美国财政部 + WebSearch/WebFetch 权威媒体复核），
+          零连接器、零 API Key、零积分。失败的数字一律撤下或标注，禁止编造。
+  用法：复制本文件 → 替换日期/数据时间 → 替换价格速览条(ticker) → 替换各 section 内容
+        → 更新底部「数据说明」与生成时间。不要加入个人持仓/自选等个性化内容。
+  结构（自上而下，可按需增删 section，但保持数据说明与页脚）：
+    1. masthead 报头 + dateline 数据截至时间
+    2. ticker 价格速览条（A股/商品/美股/汇率/利率，红涨绿跌）
+    3. 头版 FRONT PAGE（主稿 + TOP5 侧栏）
+    4. 国内·宏观与政策 / 国际·市场与央行 / 汇率与外汇
+    5. 行业扫描 / 商品与期货 / 资金流向 / 公司与中报 / 机构观点 / 今日关注
+    6. note-box 数据说明（必填：数据源披露）
+    7. foot 页脚（生成时间）
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>金融日报 · 2026-08-26</title>
+<style>
+  :root{
+    --paper:#f7f4ed; --paper2:#efe9dc; --ink:#1c2230; --ink2:#4a5366;
+    --line:#d9d0bd; --gold:#b08a2e; --gold2:#c9a84a;
+    --up:#b23b2e; --down:#1e7a52; --card:#fffdf8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);
+    font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.55;padding:30px 18px 60px;font-size:13px;}
+  .wrap{max-width:1040px;margin:0 auto;}
+  .serif{font-family:"Noto Serif SC","Songti SC",Georgia,serif;}
+
+  .masthead{border-top:4px double var(--ink);border-bottom:1px solid var(--line);padding:14px 0 10px;text-align:center;}
+  .kicker{font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--gold);font-weight:700;}
+  .masthead h1{font-size:46px;font-weight:800;margin:4px 0;letter-spacing:.06em;}
+  .masthead .sub{font-size:13px;color:var(--ink2);}
+  .dateline{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;font-size:11.5px;color:var(--ink2);
+    border-bottom:1px solid var(--line);padding:7px 0 11px;}
+  .dateline b{color:var(--ink);font-weight:700;}
+
+  .ticker{display:flex;flex-wrap:wrap;gap:0;border-top:1px solid var(--gold);border-bottom:1px solid var(--gold);
+    background:#fffdf6;margin:0 0 4px;}
+  .tk{flex:1 1 18%;min-width:120px;padding:7px 12px;border-right:1px dotted var(--line);}
+  .tk:last-child{border-right:none;}
+  .tk .l{font-size:10.5px;color:var(--ink2);}
+  .tk .v{font-family:"Noto Serif SC",serif;font-weight:800;font-size:15px;}
+  .tk .v small{font-size:10px;font-weight:600;color:var(--ink2);}
+  .up{color:var(--up);}.down{color:var(--down);}
+
+  .section-title{font-size:12.5px;letter-spacing:.18em;color:var(--gold);font-weight:700;
+    margin:22px 0 10px;display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--line);padding-bottom:5px;}
+  .section-title::before{content:"";width:16px;height:2px;background:var(--gold);}
+  .sec-en{font-size:10px;color:var(--ink2);letter-spacing:.1em;margin-left:auto;font-weight:400;}
+
+  .lead-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:22px;}
+  .lead-main h2{font-size:23px;font-weight:800;line-height:1.3;margin-bottom:6px;}
+  .lead-main .stand{font-size:12.5px;color:var(--ink2);margin-bottom:9px;font-style:italic;}
+  .lead-main p{margin-bottom:8px;text-align:justify;}
+  .lead-side{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:0 6px 6px 0;padding:12px 14px;}
+  .lead-side h3{font-size:12.5px;color:var(--gold);letter-spacing:.1em;margin-bottom:7px;}
+  .front-list{list-style:none;counter-reset:fl;}
+  .front-list li{counter-increment:fl;font-size:12.5px;padding:6px 0 6px 26px;position:relative;border-bottom:1px dotted var(--line);}
+  .front-list li:last-child{border-bottom:none;}
+  .front-list li::before{content:counter(fl);position:absolute;left:0;top:6px;font-family:"Noto Serif SC",serif;font-weight:800;color:var(--gold);font-size:14px;}
+  .front-list b{color:var(--ink);}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .news-col{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:12px 14px;}
+  .news-col h3{font-size:15px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:7px;}
+  .news-col h3 .tag{font-size:9.5px;background:var(--ink);color:#fff;padding:2px 6px;border-radius:9px;letter-spacing:.04em;font-weight:600;}
+  .news-col h3 .tag.gold{background:var(--gold);}
+  .news-col h3 .tag.red{background:var(--up);}
+  .nl{list-style:none;}
+  .nl li{font-size:12.5px;padding:5px 0;border-bottom:1px dotted var(--line);}
+  .nl li:last-child{border-bottom:none;}
+  .nl b{color:var(--ink);}
+
+  .sector-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .sector{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:11px 13px;}
+  .sector h4{font-size:12px;font-weight:800;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--line);}
+  .sector.up h4{color:var(--up);}
+  .sector.down h4{color:var(--down);}
+  .sector.neu h4{color:var(--gold);}
+  .sector ul{list-style:none;}
+  .sector li{font-size:12px;padding:3px 0;border-bottom:1px dotted var(--line);}
+  .sector li:last-child{border-bottom:none;}
+
+  .tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .tbl td{padding:5px 8px;border-bottom:1px dotted var(--line);}
+  .tbl tr:last-child td{border-bottom:none;}
+  .tbl .r{text-align:right;font-family:"Noto Serif SC",serif;font-weight:700;}
+
+  .note-box{margin-top:22px;background:#fffaf0;border:1px solid var(--line);border-left:4px solid var(--gold);
+    border-radius:0 8px 8px 0;padding:12px 16px;font-size:11.5px;color:var(--ink2);}
+  .foot{margin-top:22px;text-align:center;font-size:10.5px;color:var(--ink2);border-top:1px solid var(--line);padding-top:12px;}
+
+  @media(max-width:720px){
+    .lead-grid,.two-col,.sector-grid{grid-template-columns:1fr;}
+    .masthead h1{font-size:34px;}
+    .tk{flex:1 1 45%;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="kicker serif">FINANCIAL DAILY · MORNING EDITION</div>
+    <h1 class="serif">金融日报</h1>
+    <div class="sub">隔夜复盘 · 2026年8月26日 周三 · 一版看全</div>
+  </div>
+  <div class="dateline">
+    <span>数据截至 <b>2026-08-25 收盘及夜盘</b></span>
+    <span>A股 <b>15:00</b></span>
+    <span>商品夜盘 <b>23:00</b></span>
+    <span>美股 <b>收盘</b></span>
+  </div>
+
+  <!-- 价格速览条 -->
+  <div class="ticker">
+    <div class="tk"><div class="l">上证指数</div><div class="v up">3889.44 <small>+0.19%</small></div></div>
+    <div class="tk"><div class="l">深证成指</div><div class="v down">13745.87 <small>-0.35%</small></div></div>
+    <div class="tk"><div class="l">创业板指</div><div class="v down">3397.52 <small>-1.00%</small></div></div>
+    <div class="tk"><div class="l">两市成交</div><div class="v">1.83<small>万亿</small></div></div>
+    <div class="tk"><div class="l">现货黄金</div><div class="v down">4637 <small>-0.31%</small></div></div>
+    <div class="tk"><div class="l">WTI原油</div><div class="v down">82.46 <small>-2.99%</small></div></div>
+    <div class="tk"><div class="l">道指·收盘</div><div class="v up">53516 <small>+0.19%</small></div></div>
+    <div class="tk"><div class="l">标普·收盘</div><div class="v up">7674 <small>+0.40%</small></div></div>
+    <div class="tk"><div class="l">比特币</div><div class="v up">8.09万 <small>8月+28%</small></div></div>
+    <div class="tk" style="border-right:none"><div class="l">DR007</div><div class="v">1.4531<small>%</small></div></div>
+  </div>
+
+  <!-- 头版 -->
+  <div class="section-title serif">头版 <span class="sec-en">FRONT PAGE</span></div>
+  <div class="lead-grid">
+    <div class="lead-main">
+      <h2 class="serif">A股V型反转 沪指收红 超4200股上涨</h2>
+      <div class="stand">隔夜纳指七连跌拖累早盘低开探底3850，午后买盘介入拉升至3884附近；指数弱、个股强，呈典型「黄线远强白线」格局。</div>
+      <p>8月25日三大指数涨跌不一：沪指 <b class="up">+0.19%</b> 报3889.44，深成 <b class="down">-0.35%</b> 报13745.87，创业板 <b class="down">-1.00%</b> 报3397.52。两市成交约1.83万亿，缩量1756亿。全市场4234涨/1246跌，涨停70、跌停4，上涨占比76%。</p>
+      <p>板块极致分化：小家电 <b class="up">+8.02%</b>、医疗服务 <b class="up">+3.40%</b>、农业/转基因、光纤CPO、大消费、数字货币活跃；贵金属 <b class="down">-3.83%</b>、小金属 <b class="down">-2.54%</b>、工业金属 <b class="down">-2.25%</b> 等前期强势资源股集体回调。机构称「再熬3天等中报出清，迎接秋抢」。</p>
+    </div>
+    <div class="lead-side">
+      <h3 class="serif">今日要点 · TOP 5</h3>
+      <ol class="front-list">
+        <li><b>金价高位回落</b>：盘中逼近4700后跳水，收4637；沪金仍处历史高位。</li>
+        <li><b>A股V型</b>：沪指3889.44 <span class="up">+0.19%</span>，成交1.83万亿缩量。</li>
+        <li><b>央行净投放2860亿</b>：3860亿逆回购+5000亿MLF对冲到期。</li>
+        <li><b>商品夜盘普跌</b>：低硫燃油<span class="down">-5.33%</span>、燃油<span class="down">-5.01%</span>领跌。</li>
+        <li><b>中报潮</b>：招商<span class="up">+105%</span>、江西铜业<span class="up">+106.77%</span>、老铺黄金<span class="up">+88%</span>。</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- 国内宏观与政策 -->
+  <div class="section-title serif">国内 · 宏观与政策 <span class="sec-en">DOMESTIC MACRO</span></div>
+  <div class="two-col">
+    <div class="news-col">
+      <h3 class="serif">流动性与货币 <span class="tag gold">央行</span></h3>
+      <ul class="nl">
+        <li>8/25 公开市场<b>净投放2860亿</b>：3860亿7天逆回购+5000亿MLF（到期6000亿）。</li>
+        <li>资金面均衡偏松：DR007 <b>1.4531%</b>，Shibor隔夜1.4350%（+1.6BP）。</li>
+        <li>预告：8/27–9/1 开展隔夜逆回购，每日≤6000亿护航月末。</li>
+        <li>存单曲线平坦：1Y国股大行收1.485%，1Y-1M利差8.5BP。</li>
+      </ul>
+    </div>
+    <div class="news-col">
+      <h3 class="serif">政策与产业 <span class="tag">政策</span></h3>
+      <ul class="nl">
+        <li>银行业监督管理法修订草案二审，规制挪用客户资金。</li>
+        <li>成都新政：公积金贷款首付<b>15%</b>+一年期20%利息补贴。</li>
+        <li>能源局：7月底太阳能装机12.9亿千瓦<span class="up">+16.1%</span>，风电6.9亿<span class="up">+19.5%</span>。</li>
+        <li>国资委召开央企<b>6G</b>推进会，31家央企参会加速商业闭环。</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 国际市场 -->
+  <div class="section-title serif">国际 · 市场与央行 <span class="sec-en">GLOBAL</span></div>
+  <div class="two-col">
+    <div class="news-col">
+      <h3 class="serif">美股与资产 <span class="tag red">收盘</span></h3>
+      <ul class="nl">
+        <li>美股收盘：道指<span class="up">+0.19%</span>报53516、标普<span class="up">+0.40%</span>报7674、纳指<span class="up">+0.71%</span>报26164。</li>
+        <li>中概普涨：金龙指数<span class="up">+0.49%</span>，富途<span class="up">+7%</span>、网易<span class="up">+3%</span>。</li>
+        <li>原油跳水：WTI<span class="down">-2.99%</span>报82.46，布伦特<span class="down">-2.85%</span>报87.96（美提议解封换霍尔木兹重开）。</li>
+        <li>比特币破8万、8月<span class="up">+28%</span>；现货金<span class="down">-0.31%</span>报4637、白银<span class="down">-1.48%</span>。</li>
+      </ul>
+    </div>
+    <div class="news-col">
+      <h3 class="serif">央行与债市 <span class="tag">FED</span></h3>
+      <ul class="nl">
+        <li>美联储柯林斯：维持利率不变，但通胀若无进展「应很快收紧」。</li>
+        <li>美债买回辩论：高盛/富国称<b>难压长端收益率</b>，曲线趋陡；6周国债得标3.65%、投标倍数2.71。</li>
+        <li>高盛：日本央行加息预期提前至<b>2026年9月</b>（原2027年1月）。</li>
+        <li>大摩：油价飙升是美股头号风险，建议用能源股对冲。</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 汇率 -->
+  <div class="section-title serif">汇率与外汇 <span class="sec-en">FX</span></div>
+  <div class="two-col">
+    <div class="news-col">
+      <h3 class="serif">人民币 <span class="tag">CNY</span></h3>
+      <ul class="nl">
+        <li>美元走弱推动人民币企稳；美财政部扩大长债回购，美元指数承压。</li>
+        <li>美元兑日元、兑离岸人民币：隔夜美元偏弱，日元获避险买盘。</li>
+        <li>新西兰元受新西兰央行鹰派+美联储犹豫支撑，数月来或进一步走强。</li>
+        <li>澳元：澳储行年内不加息预期升温，关注8/29通胀数据。</li>
+      </ul>
+    </div>
+    <div class="news-col">
+      <h3 class="serif">美元与主要货币 <span class="tag">DXY</span></h3>
+      <ul class="nl">
+        <li>「贬值交易」回归：美元走弱+黄金/比特币齐涨，市场定价财政/信用担忧。</li>
+        <li>比特币破8万、8月<span class="up">+28%</span>，被视作对美元贬值的一票。</li>
+        <li>美债长端收益率高企 vs 美元走弱并存，警惕「期限溢价」式避险错配。</li>
+        <li>关注：杰克逊霍尔年会（周五），美联储主席讲话或回避明确指引。</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 行业扫描 -->
+  <div class="section-title serif">行业扫描 · 涨跌与题材 <span class="sec-en">SECTORS</span></div>
+  <div class="sector-grid">
+    <div class="sector up">
+      <h4>领涨板块</h4>
+      <ul>
+        <li>小家电 <b class="up">+8.02%</b>（石头科技20CM）</li>
+        <li>医疗服务/CRO <b class="up">+3.40%</b>（凯莱英涨停）</li>
+        <li>化妆品 <b class="up">+5.23%</b> · 地产服务 <b class="up">+4.37%</b></li>
+        <li>装修装饰 <b class="up">+3.64%</b> · 电视广播 <b class="up">+3.15%</b></li>
+      </ul>
+    </div>
+    <div class="sector down">
+      <h4>领跌板块</h4>
+      <ul>
+        <li>贵金属 <b class="down">-3.83%</b>（灵宝黄金-6%）</li>
+        <li>小金属 <b class="down">-2.54%</b> · 工业金属 <b class="down">-2.25%</b></li>
+        <li>电池 <b class="down">-2.40%</b> · 锂矿跟跌</li>
+        <li>半导体/存储补跌（易中天向-50%靠拢）</li>
+      </ul>
+    </div>
+    <div class="sector neu">
+      <h4>题材热点</h4>
+      <ul>
+        <li>农业/转基因：金健米业7天5板（厄尔尼诺最强）</li>
+        <li>光纤CPO：保偏光纤需求爆发，特发信息涨停</li>
+        <li>大消费：零售/旅游/乳业政策贴息扩围</li>
+        <li>数字货币：运营机构扩至30家；创新药回暖</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 商品与期货 -->
+  <div class="section-title serif">商品与期货 <span class="sec-en">COMMODITIES</span></div>
+  <div class="two-col">
+    <div class="news-col">
+      <h3 class="serif">内盘夜盘收盘 <span class="tag gold">23:00</span></h3>
+      <table class="tbl">
+        <tr><td>低硫燃油</td><td class="r down">-5.33%</td><td>燃油</td><td class="r down">-5.01%</td></tr>
+        <tr><td>丁二烯橡胶</td><td class="r down">-4.30%</td><td>乙二醇</td><td class="r down">-3.00%</td></tr>
+        <tr><td>焦炭</td><td class="r down">-2.24%</td><td>PTA</td><td class="r down">-2.53%</td></tr>
+        <tr><td>PVC</td><td class="r down">-1.16%</td><td>菜粕</td><td class="r up">+1.65%</td></tr>
+      </table>
+    </div>
+    <div class="news-col">
+      <h3 class="serif">外盘与持仓</h3>
+      <ul class="nl">
+        <li>LME持仓：铜净多4.87万手（周-3625）；铝净多14.24万手；铅净空2.37万手。</li>
+        <li>原油：WTI 82.46 / 布伦特 87.96，美伊消息后盘中跳水。</li>
+        <li>厄尔尼诺：10-12月达「超级」级概率&gt;90%，棕榈等作物滞后受影响。</li>
+        <li>俄罗斯拟将柴油出口禁令延至9月底（炼厂遇袭停产）。</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 资金流向 -->
+  <div class="section-title serif">资金流向 <span class="sec-en">FLOWS</span></div>
+  <div class="two-col">
+    <div class="news-col">
+      <h3 class="serif">A股资金</h3>
+      <ul class="nl">
+        <li>融资余额：两市合计<b>26208亿</b>，较前值<b class="down">-41.86亿</b>（截至8/24）。</li>
+        <li>主力净流入：医药、机械、专用设备；净流出有色<b class="down">-44亿</b>、电子、半导体。</li>
+        <li>个股：中际旭创遭净卖出<b class="down">超6亿</b>；英维克、亨通光电、寒武纪居前。</li>
+      </ul>
+    </div>
+    <div class="news-col">
+      <h3 class="serif">南向 / 北向</h3>
+      <ul class="nl">
+        <li>南向资金净卖出港股 <b class="down">66.05亿港元</b>；大市成交2540亿。</li>
+        <li>南向十大：美团/MAXIM/药明生物获净买；建滔积层板/南方恒科/长飞遭净卖。</li>
+        <li>北向：沪深港通北向交易披露自2024年起<b>暂停</b>，暂无公开净流数据。</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 公司与中报 -->
+  <div class="section-title serif">公司与中报 <span class="sec-en">CORPORATES</span></div>
+  <div class="two-col">
+    <div class="news-col">
+      <h3 class="serif">业绩亮点</h3>
+      <ul class="nl">
+        <li><b>招商</b> 中报净利 <span class="up">+105%</span>；<b>江西铜业</b> <span class="up">+106.77%</span>。</li>
+        <li><b>老铺黄金</b>：营收198亿<span class="up">+60.3%</span>，净利42.67亿<span class="up">+88.2%</span>（线上+172%）。</li>
+        <li><b>石头科技</b>：净利9.86亿<span class="up">+45.6%</span>（二季度+61.8%）。</li>
+      </ul>
+    </div>
+    <div class="news-col">
+      <h3 class="serif">新股与IPO</h3>
+      <ul class="nl">
+        <li>N高凯首日 <span class="up">+282.99%</span> 报235元（发行61.36元）。</li>
+        <li><b>燧原科技</b>：拟发行4303万股（10%），网上/网下申购日 <b>9月2日</b>。</li>
+        <li>待发：宇树科技、长鑫科技、长江存储、频准激光（密集抽资）。</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 机构观点 -->
+  <div class="section-title serif">机构观点 <span class="sec-en">STREET VIEWS</span></div>
+  <div class="news-col">
+    <ul class="nl">
+      <li><b>中信证券</b>：银行财报季经营格局稳定，息差/资产质量稳，全年绝对收益延续。</li>
+      <li><b>银河证券</b>：云巨头资本开支持续，光模块订单饱满，「光进铜退」加速，盈利中枢上移。</li>
+      <li><b>中金公司</b>：看好AI算力成长主线，关注国产算力服务器/交换机/液冷+海外ASIC/光模块。</li>
+      <li><b>摩根大通</b>：年内股市维持乐观，上涨来自板块轮动而非普涨；看好优质成长与半导体。</li>
+      <li><b>巨丰</b>：A股V型、存量博弈延续，规避高估值泡沫，等主线格局明确。</li>
+    </ul>
+  </div>
+
+  <!-- 今日关注 -->
+  <div class="section-title serif">今日关注 / 日历 <span class="sec-en">WATCH</span></div>
+  <div class="two-col">
+    <div class="news-col">
+      <h3 class="serif">事件</h3>
+      <ul class="nl">
+        <li>英伟达财报：美东 <b>8/26 盘后</b>；期权隐含波动约5.4%（低于5月6.5%）。</li>
+        <li>杰克逊霍尔年会：美联储主席沃什周五讲话，市场料回避明确指引。</li>
+        <li>A股中报披露进入最后几天，警惕个股业绩「暴雷」。</li>
+      </ul>
+    </div>
+    <div class="news-col">
+      <h3 class="serif">风险提示</h3>
+      <ul class="nl">
+        <li>地缘：美伊/霍尔木兹反复，油价与避险资产波动。</li>
+        <li>美债长端收益率上行，压制全球风险偏好。</li>
+        <li>新股密集发行抽资，科技/资源补跌未完。</li>
+        <li>中报出清前市场缩量观望，地量磨底。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="note-box">
+    <b>数据说明：</b>A股与港股指数、内外盘商品及汇率取自新浪财经公开行情接口；美股三大指数取自 CNBC 公开报价（标注盘中/收盘）；美债收益率取自美国财政部每日收益率曲线；深市成交额经深圳证券交易所官方数据复核。新闻与政策要闻经新华社、证券时报、上海证券报、东方财富、AP News 等多源交叉核对。仅供信息参考，不构成投资建议。
+  </div>
+
+  <div class="foot">金融日报 · 生成于 2026-08-26</div>
+
+</div>
+</body>
+</html>

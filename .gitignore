@@ -1,0 +1,16 @@
+# 运行产物
+raw/
+outputs/
+*.html
+!assets/market_news_template.html
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+*.swp
