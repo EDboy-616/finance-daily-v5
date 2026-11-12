@@ -1,5 +1,7 @@
 # 金融日报 V5 (finance-daily-v5)
 
+> **接手的 agent 请先读 [HANDOFF.md](HANDOFF.md)** —— 项目状态、架构约定、验证方法与待办事项都在那里。本 README 面向最终用户。
+
 一个 [Claude Code / Agent Skills](https://docs.claude.com/en/docs/agents-and-tools/agent-skills) 格式的技能包：对话中说「金融日报」，自动采集公开市场数据并生成**报刊风（editorial）金融要闻日报长图**，双交付 **HTML + 高清 PNG**。
 
 ![style](https://img.shields.io/badge/style-报刊风暖纸金线-b08a2e) ![deps](https://img.shields.io/badge/fetch-零第三方依赖-1e7a52) ![api](https://img.shields.io/badge/API%20Key-不需要-b23b2e)
