@@ -13,7 +13,7 @@
 
 ## 2. 当前状态（2026-11-12 第三轮：README 重做）
 
-- git 历史：`aefe8d2` 标准化重构 → `fa39855` 跨宿主适配层 → `55a9f8c` HANDOFF → `6ed3a21` 长度回填 → `b529efc` CI 两坑 → `e175000` 文档 → `46ca522` 作者归属修正 → `6850941` README 重做 + `docs/` + `make_docs_images.py` → `bb9a135` 宿主表 br 换行（远端 `main` 同点，CI 双平台绿）。
+- git 历史（**2026-11-12 15:05 全库身份改写后，13 个提交作者与提交者统一为 EDboy-616；旧 hash 已全部失效，不要用旧 hash 引用**）：`aafb90c` 标准化重构 → `750e720` 跨宿主适配层 → `5d81085` HANDOFF → `de4ab67` 双机制重做 → `f46941e` 目录名修法 → `076440b` 长度回填 → `a469c64` 仓库归属 → `514b739` CI 两坑 → `6b38ef1` 文档 → `5f17d5f` 作者 ID 坑 → `5f7df94` README 重做 + `docs/` → `5d50849` 宿主表 br 换行 → `3d50896` HANDOFF 补记（远端 `main` 同点，CI 双平台绿）。
 - 本轮新增：`docs/`（`emblem.svg`、`banner.png`、`social-preview.png`、`preview-top/detail/full.png`）+ `maintainer/make_docs_images.py`（生成 README 用图的维护脚本，不随 skill 安装）+ README 全面重写。
 - 更早一轮新增：`scripts/validate_skill.py`、`scripts/install.py`、`scripts/package_claudeai.py`、`maintainer/prompt-slim.src.md`、`maintainer/repo.txt`、`adapters/system-prompt-slim.md`、`.claude-plugin/marketplace.json`、`.github/workflows/verify.yml`、`.gitattributes`。
 - `test/_extracted/`（仓库外，位于 `skill-2/test/`）是原始 zip 的解压残留，仅作对照，**不要**纳入仓库。
@@ -113,6 +113,9 @@ python maintainer/make_docs_images.py
 1. **适配层漂移误报**：`detect_repo_slug()` 原本读 `git remote get-url origin`。本地没加 remote 时生成一版，CI checkout 后带 remote 生成另一版，`--check` 在 CI 必然报「7 个文件全部漂移」。现在唯一来源是签入仓库的 `maintainer/repo.txt`（一行 `EDboy-616/finance-daily-v5`），`FINANCE_DAILY_REPO` 环境变量仅作临时覆盖。**换仓库地址要同时改 repo.txt 和 README 克隆地址。**
 2. **Windows stdout 编码**：`validate_skill.py` 打印 `✓` 时 runner 的 cp1252 抛 `UnicodeEncodeError`。`build_adapters.py` / `validate_skill.py` / `render.py` 现在开头都 `reconfigure(encoding="utf-8", errors="replace")`。新脚本必须照做，否则 windows-latest 会挂。
 3. **提交作者邮箱里的数字 ID 必须是该账号自己的**：本机曾有 EDboy-628 与 EDboy-616 两个 GitHub 账号，noreply 邮箱前缀的 `137130507` 是 628 的 ID。配成 `137130507+EDboy-616@users.noreply.github.com` 时 GitHub 按前缀 ID 匹配，把提交记到 **EDboy-628** 名下（网页贡献者列表串号）。616 的真实 ID 是 **354708082**，正确写法 `354708082+EDboy-616@users.noreply.github.com`。查真实 ID：`GET /users/<login>` 的 `id` 字段，或 `GET /user` 看 token 属于谁。
+   - **踩坑补充（2026-11-12 15:05 已彻底修）**：第一次只 rebase 了 `6ed3a21` 之后的提交，把 `6ed3a21` 自己漏在外面，导致「修完还剩 6 个 628」。**改身份必须改全部历史，不是改一段**。正解是 `git filter-branch -f --env-filter '...GIT_AUTHOR_*/GIT_COMMITTER_*...' -- --all`（同时改 author 与 committer，且保留原始时间），再 `git push --force-with-lease`。
+   - **`filter-branch` 会连备份分支一起改写**，所以备份要从 `refs/original/refs/heads/main` 重建：`git branch -f backup-628-original refs/original/refs/heads/main`。
+   - **`--force-with-lease` 会因本地 remote-tracking 已被 filter-branch 改写而报 `stale info`**：用显式 lease 值 `git push --force-with-lease="main:<远端真实 sha>"`（sha 从 `GET /repos/{o}/{r}/branches/main` 取）。
 
 另外两个**不是代码问题**的假失败，别改 workflow：
 
@@ -129,6 +132,6 @@ python maintainer/make_docs_images.py
 ## 8. 联系上下文
 
 - 用户中文交流，偏好直接执行、不过度确认；此前已授权在本 test 目录内创建文件与 git 操作，并于 2026-11-12 明确同意推送 GitHub（已完成）。**后续改动默认本地提交 + 推送；若用户说"先别推"则以他为准。**
-- 仓库：`https://github.com/EDboy-616/finance-daily-v5`（public）。注意本机 `git config` **全局**身份仍是 EDboy-628，**本仓库 local 身份已改为 EDboy-616 / `354708082+EDboy-616@users.noreply.github.com`**；GitHub 凭据管理器里两个账号的 token 都在，推送用的是 EDboy-616 的（scope: gist/repo/workflow）。历史前 6 个提交作者仍是 EDboy-628（上一轮会话的真实身份，未改写）。
+- 仓库：`https://github.com/EDboy-616/finance-daily-v5`（public）。注意本机 `git config` **全局**身份仍是 EDboy-628，**本仓库 local 身份是 EDboy-616 / `354708082+EDboy-616@users.noreply.github.com`**；GitHub 凭据管理器里两个账号的 token 都在，推送用的是 EDboy-616 的（scope: gist/repo/workflow）。**2026-11-12 15:05 已用 `filter-branch` 把全部 13 个提交的 author 与 committer 统一成 EDboy-616，贡献者列表现在只剩 616（13 次贡献）；旧 hash 全部作废。** 原始 628 历史留在本地分支 `backup-628-original`（未推送），确认无碍后可 `git branch -D backup-628-original`。
 - 原始 zip：`C:\WPS\Downloads\skills-export-20261112\finance-daily-v5.zip`（另有同名导出包含 WorkBuddy 原版，与本仓库无关）。
 - 本轮调研笔记：`C:\AIdocument\GitHub-cc-ds\skill-2\test\_notes\agent-skills-conventions.md`。
