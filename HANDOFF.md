@@ -13,7 +13,7 @@
 
 ## 2. 当前状态（2026-11-12 第三轮：README 重做）
 
-- git 历史：`aefe8d2` 标准化重构 → `fa39855` 跨宿主适配层 → `55a9f8c` HANDOFF → `6ed3a21` 长度回填 → `b529efc` CI 两坑 → `e175000` 文档 → `46ca522` 作者归属修正（远端 `main` 同点，CI 双平台绿）。
+- git 历史：`aefe8d2` 标准化重构 → `fa39855` 跨宿主适配层 → `55a9f8c` HANDOFF → `6ed3a21` 长度回填 → `b529efc` CI 两坑 → `e175000` 文档 → `46ca522` 作者归属修正 → `6850941` README 重做 + `docs/` + `make_docs_images.py` → `bb9a135` 宿主表 br 换行（远端 `main` 同点，CI 双平台绿）。
 - 本轮新增：`docs/`（`emblem.svg`、`banner.png`、`social-preview.png`、`preview-top/detail/full.png`）+ `maintainer/make_docs_images.py`（生成 README 用图的维护脚本，不随 skill 安装）+ README 全面重写。
 - 更早一轮新增：`scripts/validate_skill.py`、`scripts/install.py`、`scripts/package_claudeai.py`、`maintainer/prompt-slim.src.md`、`maintainer/repo.txt`、`adapters/system-prompt-slim.md`、`.claude-plugin/marketplace.json`、`.github/workflows/verify.yml`、`.gitattributes`。
 - `test/_extracted/`（仓库外，位于 `skill-2/test/`）是原始 zip 的解压残留，仅作对照，**不要**纳入仓库。
@@ -101,7 +101,7 @@ python maintainer/make_docs_images.py
 - ✅ `render.py` 端到端验证过：拿 `assets/market_news_template.html` 改日期渲染出 3240×8631 的 3x PNG，裁边正常、13 个板块与 ticker 十卡都在。playwright + Pillow 已在本机装好（chromium-1248 在 `%LOCALAPPDATA%\ms-playwright`）；`file:///" +` 拼接的旧 bug 已修为 `Path.resolve().as_uri()`，validator 有回归守卫。
 - ⚠️ **未做真实日报端到端**：模板渲染链路已验证，但 Step 0~7 的完整流程（含检索新闻、填内容）尚未串起来出过一张真图。
 - ✅ **已推送到 https://github.com/EDboy-616/finance-daily-v5（public，默认分支 main）**，CI `verify` 在 ubuntu-latest 与 windows-latest 双平台全绿；`dist/*.zip` 作为 artifact 留档（约 27 KB）。
-- ✅ README 用图已生成并逐张目视确认（`docs/` 6 个文件，`make_docs_images.py` exit 0）；README 已用 GitHub 官方 markdown API 渲染后截图核对，修掉了两处真实版面缺陷（4 列表格横向溢出、CJK 制表符导致目录树注释对不齐）。
+- ✅ README 用图已生成并逐张目视确认（`docs/` 6 个文件，`make_docs_images.py` exit 0）；README 已用 GitHub 官方 markdown API 渲染后截图核对，修掉四处真实版面缺陷：① 宿主表 4 列导致「该宿主的坑」列被挤出容器 → 缩成 3 列 + 表下 6 条 bullet；② CJK 制表符按双宽渲染导致目录树 `#` 注释错位 → 改用纯 ASCII 连接符 `|--` / `` `-- `` + `ljust`；③ 左右双栏把细节图压到 430px → 改整宽上下排列 + 13 板块表变 4 列紧凑双栏；④ 宿主表「原生 skills」列用 ` · ` 分隔被挤成三行 → 改 `<br>`。
 - ⚠️ `install.py` 的宿主路径表来自官方文档 + skills.sh / skillfish / ruler 三家交叉核对，但未逐台实测；OpenCode / TRAE / Kiro / Roo / Goose / CodeBuddy / Antigravity 七家沿用社区约定。
 - ⚠️ `claude plugin validate .` 未跑过（本机 `gh` 未登录、未装 claude CLI）；`.claude-plugin/marketplace.json` 结构按官方实例写，`validate_skill.py` 只做了结构自检。
 - ⚠️ 乱码说明：`skill-2/test/_extracted/` 下两个文件名乱码的 md 是原 zip GBK 文件名导致（内容是「README_安装说明.md」和「打包说明_金融日报V5.md」），内容已无损失，不影响仓库。
@@ -113,6 +113,11 @@ python maintainer/make_docs_images.py
 1. **适配层漂移误报**：`detect_repo_slug()` 原本读 `git remote get-url origin`。本地没加 remote 时生成一版，CI checkout 后带 remote 生成另一版，`--check` 在 CI 必然报「7 个文件全部漂移」。现在唯一来源是签入仓库的 `maintainer/repo.txt`（一行 `EDboy-616/finance-daily-v5`），`FINANCE_DAILY_REPO` 环境变量仅作临时覆盖。**换仓库地址要同时改 repo.txt 和 README 克隆地址。**
 2. **Windows stdout 编码**：`validate_skill.py` 打印 `✓` 时 runner 的 cp1252 抛 `UnicodeEncodeError`。`build_adapters.py` / `validate_skill.py` / `render.py` 现在开头都 `reconfigure(encoding="utf-8", errors="replace")`。新脚本必须照做，否则 windows-latest 会挂。
 3. **提交作者邮箱里的数字 ID 必须是该账号自己的**：本机曾有 EDboy-628 与 EDboy-616 两个 GitHub 账号，noreply 邮箱前缀的 `137130507` 是 628 的 ID。配成 `137130507+EDboy-616@users.noreply.github.com` 时 GitHub 按前缀 ID 匹配，把提交记到 **EDboy-628** 名下（网页贡献者列表串号）。616 的真实 ID 是 **354708082**，正确写法 `354708082+EDboy-616@users.noreply.github.com`。查真实 ID：`GET /users/<login>` 的 `id` 字段，或 `GET /user` 看 token 属于谁。
+
+另外两个**不是代码问题**的假失败，别改 workflow：
+
+- **Windows runner 排队超时被取消**：job 在队列里超过 15 分钟没被 runner 领走，GitHub 自动 `cancelled`，整个 run 记 failure，但 job 内 8 个 step 全是 success。2026-11-12 遇到两次（一次排 295 秒才起，一次直接超时取消）。处理：`POST /repos/{o}/{r}/actions/runs/{id}/rerun-failed-jobs` 重跑即可。
+- **`git push` 偶发 502**：`fatal: unable to access ... error: 502`，等几秒重试即可，不要动配置。
 
 ## 7. 待办（接手后可做）
 
