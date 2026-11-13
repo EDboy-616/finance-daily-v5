@@ -27,7 +27,7 @@
 3. **正文能力声明式**：正文不引用任何宿主专有工具名，只用「执行命令 / 检索网页 / 打开网页 / 读写文件」四类能力动词。`validate_skill.py` 有黑名单扫描（WebSearch/WebFetch/google_web_search/read_url/mcp__/`/skill:`/`$finance-daily` 等）。
    - 同理，**正文里不能用 Claude Code 专有的替换量**（`${CLAUDE_SKILL_DIR}`、`` !`cmd` ``、`@file`、`$ARGUMENTS`）—— 它们在其他宿主就是字面垃圾。需要绝对路径就写 `<SKILL_DIR>` 占位符 + §0 的探测规则。
 4. **数据铁律不容放宽**（SKILL.md §2/§7/§9 反复强调）：取不到的数字一律撤下或标「待核」，禁止编造、禁止取平均、禁止用旧值回退。任何重构、降级、适配都不能弱化这条。
-5. **路径约定**：脚本在 `scripts/`，HTML 模板在 `assets/`。正文里引用一律 `<SKILL_DIR>/scripts/...` 形式（宿主 CWD 通常是用户项目目录，不是 skill 目录）；`validate_skill.py` 会抓裸 `python scripts/...`。
+5. **路径约定**：脚本在 `scripts/`，HTML 模板在 `assets/`。正文里引用一律 `<SKILL_DIR>/scripts/...` 形式（宿主 CWD 通常是用户项目目录，不是 skill 目录）；`validate_skill.py` 会抓裸 `python scripts/...`。**这是与官方 using-scripts 示例（其假设"从 skill 根执行命令"）的有意偏差**：14 类宿主的 CWD 行为不一，占位符 + §0 探测是唯一跨宿主稳的写法，别把它当缺陷"修"回相对路径。
 6. **换行符**：所有生成物写 `newline="\n"`；`.gitattributes` 强制 LF，否则 Windows runner 上 `--check` 会误报漂移。
 
 ## 4. 跨宿主适配：两种机制（本项目核心特性）
@@ -128,6 +128,8 @@ python maintainer/make_docs_images.py
 2. 可选：`claude plugin validate .` 实跑一次（需装 claude CLI）；`npx skills add EDboy-616/finance-daily-v5` 验证 skills.sh 能发现本仓库根 SKILL.md。
 3. 可选：CI 里的 `fetch_public.py` 数据源巡检（现在是 smoke 只跑 `--help`，没联网，避免网络抖动误报）。
 4. 可选：给仓库加 topics（`agent-skills`、`claude-skills`、`finance`）提升可发现性。
+5. 可选：`gh skill publish`（GitHub CLI v2.90+）——会按 agentskills.io 规范校验仓库，并可顺手开 immutable releases / tag protection / secret & code scanning（供应链推荐）。`gh skill install` 入口已收录进 README「其他安装方式 ①」与适配层「通用安装器」行。
+6. 触发评测（官方 optimizing-descriptions 方法）：约 20 条 query（正负各半、负例用 near-miss），每条跑 3 次算 trigger rate、阈值 0.5，train 60% / validation 40% 防过拟合。需真实宿主会话，建议与待办 1 的端到端实跑一起做。
 
 ## 8. 联系上下文
 

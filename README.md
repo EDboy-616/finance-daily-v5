@@ -154,7 +154,7 @@ python scripts/fetch_public.py --date 2026-11-12 --out-dir ./raw
 |:--|:--|:--|
 | **Claude Code / claude.ai** | `CLAUDE.md` | `.claude/skills/`<br>`~/.claude/skills/` |
 | **OpenAI Codex CLI** | `AGENTS.md` | `.agents/skills/`<br>`~/.agents/skills/` |
-| **GitHub Copilot / VS Code** | `AGENTS.md` | `.github/skills/`<br>`~/.copilot/skills/` |
+| **GitHub Copilot / VS Code** | `AGENTS.md` | `.github/skills/`<br>`~/.copilot/skills/`<br>亦读 `.claude/skills/`、`.agents/skills/` |
 | **Gemini CLI** | `GEMINI.md` | `.gemini/skills/`<br>`~/.gemini/skills/` |
 | **Qwen Code** | `QWEN.md` | `.qwen/skills/`<br>`~/.qwen/skills/` |
 | **Cursor** | `.cursor/rules/finance-daily-v5.mdc` | `.cursor/skills/` |
@@ -233,6 +233,22 @@ finance-daily-v5/
 ---
 
 ## ✦ 其他安装方式
+
+<details>
+<summary><b>① GitHub CLI —— gh skill（官方安装器，v2.90+）</b></summary>
+
+```bash
+gh skill install EDboy-616/finance-daily-v5                       # 浏览并交互安装
+gh skill install EDboy-616/finance-daily-v5 finance-daily-v5      # 直接装本 skill
+gh skill install EDboy-616/finance-daily-v5 --agent claude-code --scope user
+gh skill preview EDboy-616/finance-daily-v5                       # 装前审阅内容
+```
+
+支持 Copilot / Claude Code / Cursor / Codex / Gemini CLI 等宿主（public preview）。注意两点：
+
+- `gh skill` 装的是**原生 skills 副本**——在 Codex / Gemini 等宿主上仍需显式调用，要「说触发词就自动跑」还得走注入式（见上方机制表）。
+- `gh skill` 会把 provenance 元数据（repo/ref/tree SHA）写进**安装副本**的 frontmatter，属正常行为；`validate_skill.py` 那类校验只对仓库源跑，不要拿去校验安装副本。
+</details>
 
 <details>
 <summary><b>② 手工克隆到 skills 目录</b></summary>

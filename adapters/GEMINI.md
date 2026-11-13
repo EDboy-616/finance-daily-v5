@@ -2,13 +2,13 @@
 
 # finance-daily-v5 · GEMINI.md 适配（Gemini CLI）
 
-> 由 SKILL.md v5.0.0 生成 · 整篇 9933 字符
+> 由 SKILL.md v5.0.0 生成 · 整篇 10027 字符
 
 ## 安装
 
 1. **注入式（触发词自动生效的唯一途径）**：把本文件整篇放到 `GEMINI.md（项目根）或 ~/.gemini/GEMINI.md`。
 2. **原生 skills（按需加载，省上下文）**：把整个仓库复制为 `~/.gemini/skills/finance-daily-v5/`，由宿主按 description 自动加载或按各家语法显式调用。
-3. **通用安装器**：`npx skills add EDboy-616/finance-daily-v5`（或 `python scripts/install.py --list` 看全部目标）。
+3. **通用安装器**：`npx skills add EDboy-616/finance-daily-v5`，GitHub CLI 也可 `gh skill install EDboy-616/finance-daily-v5`（v2.90+，装前可 `gh skill preview` 审阅）；或 `python scripts/install.py --list` 看全部目标。
 
 ## 触发
 

@@ -142,7 +142,7 @@ def install_lines(slug: str, native_dir: str | None, inject_path: str | None) ->
             f"由宿主按 description 自动加载或按各家语法显式调用。"
         )
     if slug:
-        lines.append(f"3. **通用安装器**：`npx skills add {slug}`（或 `python scripts/install.py --list` 看全部目标）。")
+        lines.append(f"3. **通用安装器**：`npx skills add {slug}`，GitHub CLI 也可 `gh skill install {slug}`（v2.90+，装前可 `gh skill preview` 审阅）；或 `python scripts/install.py --list` 看全部目标。")
     return lines
 
 

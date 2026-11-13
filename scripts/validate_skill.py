@@ -321,6 +321,12 @@ def main() -> int:
                         err(f"marketplace.json source {src!r} 指向的路径不存在")
             if name and data.get("plugins") and all(p.get("name") != name for p in data["plugins"]):
                 warn(f"marketplace.json 插件名与 skill name {name!r} 不一致（可以，但命令会变成 /<plugin>:<skill>）")
+            ver_mp = str((data.get("metadata") or {}).get("version", "")).strip()
+            ver_skill = str(meta.get("version", "")).strip() if isinstance(meta, dict) else ""
+            if ver_mp and ver_skill and ver_mp != ver_skill:
+                err(f"marketplace.json metadata.version={ver_mp!r} 与 SKILL.md metadata.version={ver_skill!r} 不同步（发布前对齐）")
+            elif ver_mp or ver_skill:
+                ok(f"marketplace.json 与 SKILL.md metadata.version 同步（{ver_mp or ver_skill}）")
             ok(".claude-plugin/marketplace.json 结构合法")
         except Exception as e:
             err(f".claude-plugin/marketplace.json 解析失败: {e}")

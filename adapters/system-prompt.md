@@ -2,12 +2,12 @@
 
 # finance-daily-v5 · 系统提示词全文版（Claude Projects / GLM 智能体 等无公开字数上限的宿主）
 
-> 由 SKILL.md v5.0.0 生成 · 整篇 9834 字符
+> 由 SKILL.md v5.0.0 生成 · 整篇 9927 字符
 
 ## 安装
 
 1. **注入式（触发词自动生效的唯一途径）**：把本文件整篇放到 `宿主的系统提示词 / 自定义指令 / Project instructions`。
-3. **通用安装器**：`npx skills add EDboy-616/finance-daily-v5`（或 `python scripts/install.py --list` 看全部目标）。
+3. **通用安装器**：`npx skills add EDboy-616/finance-daily-v5`，GitHub CLI 也可 `gh skill install EDboy-616/finance-daily-v5`（v2.90+，装前可 `gh skill preview` 审阅）；或 `python scripts/install.py --list` 看全部目标。
 
 ## 触发
 

@@ -74,7 +74,7 @@ HOSTS = {
         "inject": ("AGENTS.md", "AGENTS.md"),
         "skills_project": ".github/skills",
         "skills_global": "~/.copilot/skills",
-        "note": "Copilot 默认只吃 8000 字符（chat.agent.customInstructionLimit），本 skill 全文更长，需要在设置里调大。",
+        "note": "Copilot 默认只吃 8000 字符（chat.agent.customInstructionLimit），本 skill 全文更长，需要在设置里调大；它也读 .claude/skills 与 .agents/skills，可与 Claude/Codex 共用一份。",
     },
     "gemini": {
         "label": "Gemini CLI",
