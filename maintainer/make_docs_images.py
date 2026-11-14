@@ -172,7 +172,7 @@ def banner_html():
       <div class="sub">说一句「<b>金融日报</b>」，自动采集公开行情并生成<b>报刊风要闻长图</b></div>
       <div class="meta">
         <span><i>零</i>API Key</span><span><i>零</i>积分</span>
-        <span><i>14</i>类宿主</span><span><i>双</i>交付 HTML + PNG</span>
+        <span><i>15</i>个安装目标</span><span>HTML 必交 · PNG 可选</span>
       </div>
     </div>
     <div class="side">
@@ -225,7 +225,7 @@ def social_html():
     <div class="sub">一句「<b>金融日报</b>」→ 公开行情采集 → <b>报刊风要闻长图</b></div>
     <div class="line">
       <span><i>零</i>API Key</span><span><i>零</i>积分</span>
-      <span><i>14</i>类宿主</span><span>HTML + PNG 双交付</span>
+      <span><i>15</i>个安装目标</span><span>HTML 必交 · PNG 可选</span>
     </div>
   </div>
 </body></html>
