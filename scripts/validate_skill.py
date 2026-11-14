@@ -50,6 +50,8 @@ GENERATED_MARKER = "build_adapters.py"
 HOST_TOOL_DENY = [
     "WebSearch", "WebFetch", "google_web_search", "read_url", "web_fetch",
     "mcp__", "skill(", "$finance-daily", "/skill:", "/plugin", "str_replace_editor",
+    # 宿主专有的工具参数名同样是耦合：换宿主后就是一段无法执行的字面垃圾。
+    "freshness=", "recency=", "num_results=",
 ]
 
 # 各宿主对「要贴进去的那一坨文本」的实测上限（2026-11-12 逐条查官方文档；单位不同，别混用）
@@ -216,7 +218,7 @@ def main() -> int:
             err(f"metadata 存在非字符串值: {bad}")
         ver = meta.get("version")
         if ver is None:
-            warn("metadata.version 缺失：发布时建议写并加引号（version: \"5.0.0\"）")
+            warn("metadata.version 缺失：发布时建议写并加引号（形如 version: \"1.0.0\"）")
         else:
             raw = re.search(r"^\s*version:\s*(.+?)\s*$", text, re.M)
             if raw and raw.group(1)[:1] not in "\"'":

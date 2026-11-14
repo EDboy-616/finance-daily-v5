@@ -1,8 +1,8 @@
-<!-- DO NOT EDIT · 由 scripts/build_adapters.py 从 maintainer/prompt-slim.src.md v5.0.0 自动生成。改内容请改源文件后重跑该脚本；--check 会抓出漂移。 -->
+<!-- DO NOT EDIT · 由 scripts/build_adapters.py 从 maintainer/prompt-slim.src.md v5.0.1 自动生成。改内容请改源文件后重跑该脚本；--check 会抓出漂移。 -->
 
 # finance-daily-v5 · 系统提示词精简版（GPTs / Kimi / DeepSeek / 豆包 等有字数上限的宿主）
 
-> 由 SKILL.md v5.0.0 生成 · 整篇 2521 字符
+> 由 SKILL.md v5.0.1 生成 · 整篇 2647 字符
 
 ## 安装
 
@@ -49,7 +49,7 @@
 
 ## 取数要点（实测的坑）
 
-- 美股行情 `curmktstatus=REG_MKT` 表示**盘中**：美东 16:00 前取到的都是盘中价，必须写「截至 X 时盘中」，不得写成收盘。
+- 美股行情 `curmktstatus=REG_MKT` **不等于无条件盘中**：只有交易日且美东 16:00 前才写「截至 X 时盘中」；非交易日该字段可能未刷新，改以 `last_time` 的日期判定为已收盘，不得标「盘中价」。写 dateline 前先读 `meta.actual_data_date` 或字段级 `date` / `last_time`，请求日期不是数据日期，不得用请求日期代替。
 - 新浪 `int_dji/int_nasdaq/int_sp500` 是陈旧序列，**禁止用于美股**（实测偏差 20%+）；美股需 CNBC + 新闻双源一致。
 - 美债收益率曲线为 **T-1 发布**，标注其实际日期（如「X 月 X 日官方值」）。
 - 深市成交额：新浪口径与深交所官方偏差 0.1%~0.2% 属正常，>0.5% 需在数据说明标注。

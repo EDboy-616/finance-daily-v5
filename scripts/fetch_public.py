@@ -342,6 +342,44 @@ def eastmoney_cross():
 
 
 # ---------- 汇总 ----------
+def _derive_actual_data_date(out):
+    """从已抓取字段推导本期实际数据日期；取不到返回 None。
+
+    绝不回退到「请求日期」—— 非交易日请求日 != 数据日，用请求日会写错时点。
+    优先级：A股 cn_indices.*.date → 美股 us_indices.*.last_time → 美债 ust_curve.rows[0].date。
+    """
+    def iso(s):
+        if not isinstance(s, str):
+            return None
+        m = re.search(r"\d{4}-\d{2}-\d{2}", s)                 # CNBC last_time 可能带时分秒，只取日期段
+        if m:
+            return m.group(0)
+        m = re.search(r"\b(\d{1,2})/(\d{1,2})/(\d{4})\b", s)     # 财政部 CSV 的 Date 常为 M/D/YYYY
+        if m:
+            return f"{m.group(3)}-{int(m.group(1)):02d}-{int(m.group(2)):02d}"
+        return None
+
+    def first(values):
+        for v in values:
+            d = iso(v)
+            if d:
+                return d
+        return None
+
+    cn = out.get("cn_indices") or {}
+    d = first((v or {}).get("date") for v in cn.values() if isinstance(v, dict))
+    if d:
+        return d
+    us = out.get("us_indices") or {}
+    d = first((v or {}).get("last_time") for v in us.values() if isinstance(v, dict))
+    if d:
+        return d
+    rows = (out.get("ust_curve") or {}).get("rows") or []
+    if rows and isinstance(rows[0], dict):
+        return first([rows[0].get("date")])
+    return None
+
+
 def collect(date=None):
     date = date or datetime.now().strftime("%Y-%m-%d")
     out = {"meta": {"date": date,
@@ -391,6 +429,7 @@ def collect(date=None):
         "fred_prev_date": fred_rows[-1]["date"] if fred_rows else None,
         "note": "CNBC 为实时/收盘价，FRED SP500 为官方 T-1 收盘，用于确认量级一致",
     }
+    out["meta"]["actual_data_date"] = _derive_actual_data_date(out)
     return out
 
 

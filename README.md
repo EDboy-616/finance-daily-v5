@@ -6,7 +6,7 @@
 
 <br>
 
-<img src="https://img.shields.io/badge/Agent_Skills-v5.0.0-b08a2e?style=for-the-badge" alt="Agent Skills v5.0.0">
+<img src="https://img.shields.io/badge/Agent_Skills-v5.0.1-b08a2e?style=for-the-badge" alt="Agent Skills v5.0.1">
 <img src="https://img.shields.io/badge/API_Key-不需要-b23b2e?style=for-the-badge" alt="无需 API Key">
 <img src="https://img.shields.io/badge/第三方依赖-零-1e7a52?style=for-the-badge" alt="零第三方依赖">
 <img src="https://img.shields.io/badge/宿主适配-14_类-1c2230?style=for-the-badge" alt="14 类宿主">
@@ -275,7 +275,7 @@ claude plugin install finance-daily-v5@finance-daily-v5
 claude plugin validate .            # 可选：校验清单
 
 # claude.ai：打上传包（根 = finance-daily-v5/ 文件夹，符合官方要求）
-python scripts/package_claudeai.py  # → dist/finance-daily-v5-5.0.0.zip
+python scripts/package_claudeai.py  # → dist/finance-daily-v5-5.0.1.zip
 ```
 
 claude.ai 侧：Settings → Capabilities → Skills → Upload a skill（需开启 Code execution）。
@@ -327,7 +327,8 @@ python scripts/validate_skill.py     # 规范合规 + 宿主上限 + 引用路�
 
 | 版本 | 要点 |
 |:--|:--|
-| **V5.0.0**（当前） | 全面改为公开数据源（零连接器 / 零 API Key / 零积分）；脚本化硬行情 + 「检索网页/打开网页」多源交叉核对；适配层重做为 inject + 原生 skills 双机制，新增 `install.py` / `validate_skill.py` / `package_claudeai.py` 与 CI |
+| **V5.0.1**（当前） | 流程修订：正文去掉宿主专有检索参数并新增自检规则；明确能力探测前置、降级档位下的自审豁免；缺渲染依赖时默认只交 HTML，安装须用户同意 |
+| V5.0.0 | 全面改为公开数据源（零连接器 / 零 API Key / 零积分）；脚本化硬行情 + 「检索网页/打开网页」多源交叉核对；适配层重做为 inject + 原生 skills 双机制，新增 `install.py` / `validate_skill.py` / `package_claudeai.py` 与 CI |
 | V4 | ftShare + Wind 双连接器交叉核对 —— 已删除，不保留备份 |
 
 ---
